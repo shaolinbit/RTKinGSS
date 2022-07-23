@@ -6,6 +6,10 @@
 *.lo
 *.o
 *.obj
+*.pdb
+*.log
+*.tlog
+*.dfm
 
 # Precompiled Headers
 *.gch
@@ -30,3 +34,19 @@
 *.exe
 *.out
 *.app
+
+
+#rtklib
+*.o
+*.obs
+*.ini
+*.local
+*.user
+Release
+Release_Build
+Debug_Build
+__history
+/brd
+/data
+/test
+

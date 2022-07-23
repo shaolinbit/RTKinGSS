@@ -1,0 +1,460 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;moc;h;def;odl;idl;res;</Extensions>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;moc;h;def;odl;idl;res;</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
+      <Extensions>qrc;*</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
+      <Extensions>qrc;*</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\appcmn_qt\aboutdlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="codeopt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="convmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="convopt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\appcmn_qt\keydlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rtkconv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="startdlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\appcmn_qt\timedlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\appcmn_qt\viewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\appcmn_qt\vieweropt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="..\appcmn_qt\aboutdlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="codeopt.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="convmain.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="convopt.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="..\appcmn_qt\keydlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="startdlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="..\appcmn_qt\timedlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="..\appcmn_qt\viewer.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="..\appcmn_qt\vieweropt.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <CustomBuild Include="debug\moc_predefs.h.cbt">
+      <Filter>Generated Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="release\moc_predefs.h.cbt">
+      <Filter>Generated Files</Filter>
+    </CustomBuild>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <ClInclude Include="ui_aboutdlg.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_codeopt.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_convmain.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_convopt.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_keydlg.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_startdlg.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_timedlg.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_viewer.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_vieweropt.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="..\appcmn_qt\aboutdlg.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="codeopt.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="convmain.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="convopt.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="..\appcmn_qt\keydlg.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="startdlg.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="..\appcmn_qt\timedlg.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="..\appcmn_qt\viewer.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="..\appcmn_qt\vieweropt.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\icon\anim.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\anim1.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\anim2.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\arrow.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\arrow_r.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\border.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\building.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\chart.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\connect.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\connect1.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\connect2.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\data01.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\data02.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\data03.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\data04.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\data1.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\data12.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\data2.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\del.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\doc.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\down.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\expand.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\fitd.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\fith.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\fitv.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\ge.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\gm.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\graph.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\grid.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\headup.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\home.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\load.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\map.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\navctr.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\navi.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\navi0.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\norm.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\ori.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\pause.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\point.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\point.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rarrow.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\reload.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\road.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rotl.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rotr.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rtk1.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rtk2.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rtk3.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rtk4.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rtk5.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rtk6.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rtk7.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rtk8.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rtk8_tray.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\rtk9.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rtkconv_Icon.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <QtRcc Include="rtkconv_qt.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
+    <None Include="..\icon\scale.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\showp.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\showt.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\shrink.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\sqr.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\status.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\stop.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\svrarrow.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\tilt.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\tool.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\track.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\trackc.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\trackl.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\trackr.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\tray0.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\tray1.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\tray2.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\ttray.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\undu.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\up.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\vmap.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\wait1.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\wait2.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\wait3.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\wait4.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\wait5.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\wait6.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\wait7.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\icon\wait8.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="rtkconv_qt.rc" />
+  </ItemGroup>
+</Project>
