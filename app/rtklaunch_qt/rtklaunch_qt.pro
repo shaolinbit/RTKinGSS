@@ -11,6 +11,13 @@ greaterThan(QT_MAJOR_VERSION, 4) {
     DEFINES += QT5
 }
 
+
+include(../../RTKLib.pri)
+
+TARGET = rtklaunch_qt
+TEMPLATE = app
+
+INCLUDEPATH += ../../src/  
 INCLUDEPATH += /usr/include
 INCLUDEPATH += /usr/local/include
 INCLUDEPATH += /usr/local/include/gtsam
@@ -19,14 +26,6 @@ INCLUDEPATH += /usr/include/eigen3
 LIBS += -lboost_system
 LIBS += -ltbb
 LIBS += -L /usr/local/lib -lgtsam
-
-include(../../RTKLib.pri)
-
-TARGET = rtklaunch_qt
-TEMPLATE = app
-
-INCLUDEPATH += ../../src/  
-
 linux {
 LIBS += -lpng
 }

@@ -8,12 +8,10 @@ QT       -= core gui
 
 TARGET = RTKLib
 TEMPLATE = lib
-#CONFIG += staticlib
+CONFIG += staticlib
 CONFIG += c++11
-QMAKE_CXXFLAGS += -std=c++11
 
 include(../RTKLib.pri)
-
 INCLUDEPATH += /usr/include
 INCLUDEPATH += /usr/local/include
 INCLUDEPATH += /usr/local/include/gtsam
@@ -22,9 +20,8 @@ INCLUDEPATH += /usr/include/eigen3
 LIBS += -lboost_system
 LIBS += -ltbb
 LIBS += -L /usr/local/lib -lgtsam
-
 QMAKE_CFLAGS += -Wall -ansi -pedantic -Wno-unused-but-set-variable  -DTRACE -g
-#DEFINES -= UNICODE
+DEFINES -= UNICODE
 
 SOURCES += rtkcmn.cpp \
     convkml.cpp \
@@ -35,6 +32,7 @@ SOURCES += rtkcmn.cpp \
     ephemeris.cpp \
     geoid.cpp \
     gis.cpp \
+    global.cpp \
     ionex.cpp \
     lambda.cpp \
     options.cpp \

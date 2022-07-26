@@ -2251,7 +2251,7 @@ extern int readpcv(const char *file, pcvs_t *pcvs)
     
     trace(3,"readpcv: file=%s\n",file);
     
-    if (!(ext=const_cast<char *>(strrchr(file,'.')))) ext=const_cast<char *>("");
+    if (!(ext=const_cast<char *>(strrchr(file,'.')))) ext="";
     
     if (!strcmp(ext,".atx")||!strcmp(ext,".ATX")) {
         stat=readantex(file,pcvs);

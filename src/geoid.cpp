@@ -15,10 +15,9 @@
 *-----------------------------------------------------------------------------*/
 #include "rtklib.h"
 
-//static const double range[4];       /* embedded geoid area range {W,E,S,N} (deg) */
-static const double range[]={0.00,360.00,-90.00,90.00};
-//static const float geoid[361][181]; /* embedded geoid heights (m) (lon x lat) */
-static const float geoid[361][181]={{
+static const double range[]={0.00,360.00,-90.00,90.00};         /* embedded geoid area range {W,E,S,N} (deg) */
+
+static const float geoid[361][181]={{                   /* embedded geoid heights (m) (lon x lat) */
 -29.534f,-27.880f,-24.897f,-21.973f,-18.154f,-15.493f,-14.636f,-12.657f,-10.648f, -9.301f,
  -7.084f, -4.850f, -2.015f,  1.642f,  5.903f,  9.258f, 10.905f, 13.100f, 12.465f, 13.448f,
  14.464f, 10.528f, 10.660f, 10.931f, 12.894f, 13.775f, 13.406f, 13.503f, 13.701f, 14.329f,
@@ -7239,6 +7238,8 @@ static const float geoid[361][181]={{
  33.895f, 32.344f, 30.978f, 28.477f, 27.419f, 25.076f, 22.659f, 20.147f, 17.632f, 15.452f,
  13.606f
 }};
+
+
 
 static FILE *fp_geoid=NULL;         /* geoid file pointer */
 static int model_geoid=GEOID_EMBEDDED; /* geoid model */

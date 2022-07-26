@@ -11,7 +11,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 include(../../RTKLib.pri)
 
 INCLUDEPATH += ../../src/ ../appcmn_qt
-
 INCLUDEPATH += /usr/include
 INCLUDEPATH += /usr/local/include
 INCLUDEPATH += /usr/local/include/gtsam
@@ -20,8 +19,6 @@ INCLUDEPATH += /usr/include/eigen3
 LIBS += -lboost_system
 LIBS += -ltbb
 LIBS += -L /usr/local/lib -lgtsam
-
-
 qtHaveModule(webenginewidgets) {
     QT+= webenginewidgets
     DEFINES+=QWEBENGINE

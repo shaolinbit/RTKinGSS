@@ -47,7 +47,7 @@
 
 #define MAXPRCDAYS  100          /* max days of continuous processing */
 #define MAXINFILE   1000         /* max number of input files */
-using namespace std;
+
 /* constants/global variables ------------------------------------------------*/
 
 static pcvs_t pcvss={0};        /* receiver antenna parameters,[bug] this notation has been wroten inversely */ 
@@ -357,6 +357,315 @@ static void corr_phase_bias_ssr(obsd_t *obs, int n, const nav_t *nav)
         obs[i].L[j]-=nav->ssr[obs[i].sat-1].pbias[code-1]/lam;
     }
 }
+
+static void init_ambi_infor_dd(int flg, double bias, double q, int epoch_s, gtime_t t_start, int epoch_e = 0)
+{
+    ambi_infor * bias_infor = new ambi_infor;
+
+    key_ambi_global++;
+    bias_infor->key = key_ambi_global;
+
+    //int flg = (prn_ref << 16) | (prn_i << 8) | (0 << 4) | (f);
+
+    //int flg = (0 << 16) | (prn << 8) | (0 << 4) | (f);
+    bias_infor->bias_flag = flg;
+    if (flg == 724992)
+    {
+        double bb = 0;
+    }
+    //bias_infor->slipcount = slipcount;
+
+    bias_infor->bias = bias;
+    bias_infor->q = q;
+    bias_infor->epoch_s = epoch_s;
+    bias_infor->t_start = t_start;
+
+    bias_infor->epoch_e = epoch_e;
+
+    bias_infor->num = 1;
+
+    d_ambi.push_back(bias_infor);
+
+    bias_flg.push_back(flg);
+};
+
+
+static void bias_mean(ambi_infor * bias_infor, double bias, double q)
+{
+    if (fabs(bias) > 1000)
+        double bb = 0;
+    if (fabs(bias - bias_infor->bias) > 2)
+    {
+        double bb = 0;
+    }
+    /*if (bias_infor->bias_flag ==512  && bias_infor->epoch_s == 0)
+    {
+        FILE *fp;
+        fp = fopen("sd_ambi_check_20191109_512.txt", "a");
+        fprintf(fp, "%d  %f\n", bias_infor->epoch_s + bias_infor->num, bias);
+        fclose(fp);
+    }*/
+    double sum_bias, sum_q;
+    sum_bias = bias_infor->bias*bias_infor->num + bias;
+    sum_q = bias_infor->q*bias_infor->num + q;
+
+    bias_infor->num++;
+    bias_infor->bias = sum_bias / double(bias_infor->num);
+    bias_infor->q = sum_q / double(bias_infor->num);
+
+};
+
+
+static void savedata_fr_c(rtk_t *rtk, const prcopt_t* popt, const obsd_t* obs, const int nobs, const int isolf)
+{
+    //???????????????
+    if (norm(rtk->sol.rr, 3) < 10)
+        return;
+
+    //??rtk???????????ddres_??????dd_pair????????
+    if (rtk->sol.stat == SOLQ_NONE)//???????L1??4????0,?????????kf?????????
+    {
+        double bb = rtk->nv;
+    }
+
+
+    //????rtk?????===============================================================
+    int i, j, k;//*ix, p = (double*)malloc(sizeof(double) * n * m))
+    fr_check* fr_cc = new fr_check;
+    int sd_ambiguity_num;//???????
+
+    /*-----------------------------------------------------------------*/
+    //fr_cc->dd_bias = mat(rtk->nv, 1);
+    matcpy(fr_cc->dd_bias, rtk->dd_bias, rtk->nv, 1);
+    /*-----------------------------------------------------------------*/
+
+
+    //??
+    fr_cc->time = rtk->sol.time;
+    fr_cc->eventime = rtk->sol.eventime;
+    fr_cc->dt = rtk->dt;
+    fr_cc->epoch_num = isolf - 1;
+    //???????xyz
+    for (i = 0; i < 3; i++)
+    {
+        fr_cc->xf[i] = rtk->sol.rr[i];
+        fr_cc->vv[i] = rtk->sol.rr[i + 3];
+    }
+
+    //????
+    for (i = 0; i < 6; i++) {
+        fr_cc->rb[i] = rtk->rb[i];//??????????????????
+    }
+
+    //???
+    ////?????
+    //for (i = 0; i < 3; i++)
+    //{
+    //	for (j = 0; j < 3; j++)
+    //	{
+    //		fr_cc->Pf[i*(3) + j] = rtk->P[i*rtk->nx + j];
+    //	}
+    //}
+
+    //?????
+    for (i = 0; i < 6; i++)
+    {
+        fr_cc->Pf[i] = rtk->sol.qr[i];
+    }
+
+    //???????????????????????????????????
+    fr_cc->stat = rtk->sol.stat;
+    for (i = 0; i < MAXSAT; i++) {/*???????slip?????half????*/
+        fr_cc->ssat[i] = rtk->ssat[i];
+    }
+
+    for (i = 0; i < rtk->ns; i++) {
+        fr_cc->sat[i] = rtk->sat[i];
+    }
+
+    fr_cc->sat_ns = rtk->ns;//?????
+
+    /*if (rtk->nfix == 0)
+    {
+        for (i = 0; i < rtk->ns; i++) {
+            for (k = 0; k < popt->nf; k++)
+            {
+                fr_cc->xf[3 + i * popt->nf + k] = rtk->x[9 + MAXSAT * k + rtk->sat[i] - 1];
+                fr_cc->P_bias[i * popt->nf + f] = rtk->P[index * rtk->nx + index];
+            }
+        }
+    }
+    else if (rtk->nfix != 0)
+    {
+        for (i = 0; i < rtk->ns; i++) {
+            for (k = 0; k < popt->nf; k++)
+            {
+                fr_cc->xf[3 + i * popt->nf + k] = rtk->xa_[9 + MAXSAT * k + rtk->sat[i] - 1];
+                fr_cc->P_bias[i * popt->nf + f] = rtk->P[index * rtk->nx + index];
+            }
+        }
+    }*/
+
+    if (rtk->nfix == 0)
+    {
+        for (i = 0; i < rtk->ns; i++) {
+            for (int f = 0; f < popt->nf; f++)
+            {
+                int index = 9 + MAXSAT * f + rtk->sat[i] - 1;
+                fr_cc->xf[3 + i * popt->nf + f] = rtk->x[index];
+                fr_cc->P_bias[i * popt->nf + f] = rtk->P[index * rtk->nx + index];
+            }
+        }
+    }
+    else if (rtk->nfix != 0)
+    {
+        for (i = 0; i < rtk->ns; i++) {
+            for (int f = 0; f < popt->nf; f++)
+            {
+                int index = 9 + MAXSAT * f + rtk->sat[i] - 1;
+                fr_cc->xf[3 + i * popt->nf + f] = rtk->xa_[index];
+                fr_cc->P_bias[i * popt->nf + f] = rtk->P[index * rtk->nx + index];
+            }
+        }
+    }
+
+
+    //?????????????????
+    fr_cc->nn = rtk->nn;//?????????
+    fr_cc->nr = rtk->nr;//?????
+    fr_cc->nu = rtk->nu;//??????
+    for (i = 0; i < nobs; i++) {
+        fr_cc->obs[i] = obs[i];//?????????????????????????????????????????????????????????????????????
+    }
+    for (i = 0; i < rtk->nu && i < rtk->nr; i++) {/*???????prn*/
+        fr_cc->iu[i] = rtk->iu[i];
+        fr_cc->ir[i] = rtk->ir[i];
+    }
+
+    /*???????-----------------------------------------------------*/
+
+
+    for (i = 0, k = 0; i < rtk->nv; i++)/*????????????????????????code?0-???1-??????*/
+    {
+        //int type = (rtk->vflg[i] >> 4) & 0xF;
+        if (((rtk->vflg[i] >> 4) & 0xF) == 0)//????
+        {
+            fr_cc->vflg[k++] = rtk->vflg[i];
+        }
+    }
+    fr_cc->nv = rtk->nv;
+    fr_cc->num_sat_pair = k;//???????
+    //fr_cc->bias_index = (int*)malloc(sizeof(int) * k * 1);//??????????double_diff_pair????
+
+
+    for (i = 0; i < rtk->nv; i++)//ns:?????
+    {
+        if (((rtk->vflg[i] >> 4) & 0xF) == 1)
+            continue;
+        if (d_ambi.size() == 0)
+        {
+            init_ambi_infor_dd(rtk->vflg[i], rtk->dd_bias[i], rtk->P_dd_ambiguity[i], fr_cc->epoch_num, fr_cc->time);
+            fr_cc->bias_index[i] = d_ambi.size() - 1;
+        }
+        else if (d_ambi.size() > 0)
+        {
+            int flg = rtk->vflg[i];
+            int index = -1, flag = 0;
+            vector<int>::iterator iter;
+
+            do//??????????????????
+            {
+                iter = find(bias_flg.begin() + 1 + index, bias_flg.end(), flg);
+                index = iter - bias_flg.begin();
+
+                if (iter == bias_flg.end())
+                {
+                    flag = 1;
+
+                    init_ambi_infor_dd(rtk->vflg[i], rtk->dd_bias[i], rtk->P_dd_ambiguity[i], fr_cc->epoch_num, fr_cc->time);
+                    fr_cc->bias_index[i] = d_ambi.size() - 1;
+                    break;
+                }
+            } while (d_ambi.at(index)->epoch_e != 0);
+            if (flag == 0)//???????
+            {
+                //----MW??????------------------------------------------
+                detslp_mw_(rtk, obs, rtk->nu, &navs);
+                //--------------------------------------------
+
+                int ref_sat, u_ref_sat, f;//???prn, ????prn, ?? 0-L1?1-L2
+                ref_sat = (rtk->vflg[i] >> 16) & 0xFF;
+                u_ref_sat = (rtk->vflg[i] >> 8) & 0xFF;
+                f = rtk->vflg[i] & 0xF;
+                if ((rtk->ssat[ref_sat].slip[f] & 1) || (rtk->ssat[u_ref_sat].slip[f] & 1))//???????
+                {
+                    //-----??????-----------------------------------------------
+                    /*double sat_slip_prn[2];
+                    int slip_num = 0;
+                    if (rtk->ssat[ref_sat].slip[f] & 1)
+                    {
+                        sat_slip_prn[slip_num] = ref_sat;
+                        slip_num++;
+                    }
+                    else if (rtk->ssat[u_ref_sat].slip[f] & 1)
+                    {
+                        sat_slip_prn[slip_num] = u_ref_sat;
+                        slip_num++;
+
+                    }
+                    for (int ii = 0; ii < slip_num; ii++)
+                    {
+                        int iu_index = 0, repiar_flag = 0;
+                        for (iu_index = 0; iu_index < MAXSAT; iu_index++)
+                        {
+                            if (rtk->sat[iu_index] == sat_slip_prn[ii])
+                                break;
+                        }
+                        if (iu_index < MAXSAT)
+                        {
+                            repiar_flag = repair_slp_mw_gf(rtk, obs + rtk->iu[iu_index], &navs, sat_slip_prn[ii]);
+                            if (repiar_flag == 1)
+                            {
+
+                            }
+                        }
+                    }
+                    */
+
+                    //rtk->iu[u_ref_sat]
+                    //repair_slp_mw_gf(rtk, obs+, int n, const nav_t* nav)
+                    //--------------------------------------------------
+                    d_ambi.at(index)->epoch_e = -1;
+                    init_ambi_infor_dd(rtk->vflg[i], rtk->dd_bias[i], rtk->P_dd_ambiguity[i], fr_cc->epoch_num, fr_cc->time);
+                    fr_cc->bias_index[i] = d_ambi.size() - 1;
+                }
+                else
+                {
+                    if ((fr_cc->epoch_num > (d_ambi.at(index)->epoch_s + d_ambi.at(index)->num))
+                        ||fabs(rtk->dd_bias[i]- d_ambi.at(index)->bias)>5)//????????????????????????
+                    {
+                        d_ambi.at(index)->epoch_e = -1;
+                        init_ambi_infor_dd(rtk->vflg[i], rtk->dd_bias[i], rtk->P_dd_ambiguity[i], fr_cc->epoch_num, fr_cc->time);
+                        fr_cc->bias_index[i] = d_ambi.size() - 1;
+                    }
+                    else
+                    {
+                        fr_cc->bias_index[i] = index;
+                        bias_mean(d_ambi.at(index), rtk->dd_bias[i], rtk->P_dd_ambiguity[i]);
+                    }
+
+                }
+            }
+        }
+    }
+
+
+    fr_c.push_back(fr_cc);
+
+}
+
+
+
 /* process positioning -------------------------------------------------------
 * procedure: 
 *		1) inputobs(): get obs of every epoch 
@@ -384,9 +693,9 @@ static void procpos(FILE *fp, const prcopt_t *popt, const solopt_t *sopt,
     
     rtkinit(&rtk,popt);
     rtcm_path[0]='\0';
-    
-    while ((nobs=inputobs(obs,rtk.sol.stat,popt))>=0) {
-        
+    int numepoch =0;
+    while ((nobs=inputobs(obs,rtk.sol.stat,popt))>=0) {   //update loop
+        numepoch++;
         /* exclude satellites */
         for (i=n=0;i<nobs;i++) { 
 			/* n: num of obs after discard excluded sats; 
@@ -435,6 +744,8 @@ static void procpos(FILE *fp, const prcopt_t *popt, const solopt_t *sopt,
             solf[isolf]=rtk.sol;
             for (i=0;i<3;i++) rbf[i+isolf*3]=rtk.rb[i];
             isolf++;
+            /*save dtaa to fr_c*/
+            savedata_fr_c(&rtk,popt,obs,nobs,isolf);
         }
         else { /* combined-backward */
             if (isolb>=nepoch) return;
@@ -444,6 +755,8 @@ static void procpos(FILE *fp, const prcopt_t *popt, const solopt_t *sopt,
         }
     }/* end of while: all epoch process finished */
 
+    int numoffrcc = fr_c.size();
+    int size = sizeof(fr_check);
     if (mode==0&&solstatic&&time.time!=0.0) {
         sol.time=time;
         outsol(fp,&sol,rb,sopt);
@@ -1297,9 +1610,6 @@ extern int postpos(gtime_t ts, gtime_t te, double ti, double tu,
     int i,j,k,nf,stat=0,week,flag=1,index[MAXINFILE]={0};
     char *ifile[MAXINFILE],ofile[1024],*ext;
     
-
-
-
     trace(3,"postpos : ti=%.0f tu=%.0f n=%d outfile=%s\n",ti,tu,n,outfile);
     
     /* open processing session */
@@ -1311,7 +1621,7 @@ extern int postpos(gtime_t ts, gtime_t te, double ti, double tu,
             closeses(&navs,&pcvss,&pcvsr);
             return 0;
         }
-	for (i=0;i<MAXINFILE;i++) {
+        for (i=0;i<MAXINFILE;i++) {
             if (!(ifile[i]=(char *)malloc(1024))) {
                 for (;i>=0;i--) free(ifile[i]);
                 closeses(&navs,&pcvss,&pcvsr);

@@ -16,6 +16,12 @@ lessThan(QT_MAJOR_VERSION, 5) {
     DEFINES += QEXTSERIALPORT
 }
 
+include(../../RTKLib.pri)
+
+TARGET = rtknavi_qt
+TEMPLATE = app
+
+INCLUDEPATH += ../../src/ ../appcmn_qt ../rtkplot_qt
 INCLUDEPATH += /usr/include
 INCLUDEPATH += /usr/local/include
 INCLUDEPATH += /usr/local/include/gtsam
@@ -24,14 +30,6 @@ INCLUDEPATH += /usr/include/eigen3
 LIBS += -lboost_system
 LIBS += -ltbb
 LIBS += -L /usr/local/lib -lgtsam
-
-include(../../RTKLib.pri)
-
-TARGET = rtknavi_qt
-TEMPLATE = app
-
-INCLUDEPATH += ../../src/ ../appcmn_qt ../rtkplot_qt
-
 linux{
     RTKLIB =../../src/libRTKLib.a
     LIBS += -lpng $${RTKLIB}

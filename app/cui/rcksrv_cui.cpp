@@ -9,7 +9,7 @@ a litte bit scattered, variables in gui navimain and its subguis.
 
 */
 
-QString OPT_FILE = "C:/Users/pc/Desktop/nav-ppp-k-gc.conf";
+QString OPT_FILE = "/home/zhanyd/workspace";
 QString TLE_FILE = "";
 QString TLE_SAT_FILE = "";
 #define MAXSTR      1024                /* max length of a string */

@@ -475,6 +475,12 @@ static void detslp_mw(rtk_t *rtk, const obsd_t *obs, int n, const nav_t *nav)
         }
     }
 }
+
+extern void detslp_mw_(rtk_t *rtk, const obsd_t *obs, int n, const nav_t *nav)
+{
+    detslp_mw(rtk, obs, n, nav);
+}
+
 /* temporal update of position -----------------------------------------------*/
 static void udpos_ppp(rtk_t *rtk)
 {

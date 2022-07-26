@@ -1908,7 +1908,7 @@ extern int outrnxobsh(FILE *fp, const rnxopt_t *opt, const nav_t *nav)
     timestr_rnx(date);
     
     if (opt->rnxver<=2.99) { /* ver.2 */
-        sys=opt->navsys==SYS_GPS?const_cast<char *>("G (GPS)"):const_cast<char *>("M (MIXED)");
+        sys=opt->navsys==SYS_GPS?const_cast<char*>("G (GPS)"):const_cast<char*>("M (MIXED)");
     }
     else { /* ver.3 */
         if      (opt->navsys==SYS_GPS) sys="G: GPS";

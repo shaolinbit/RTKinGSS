@@ -31,9 +31,6 @@
 *-----------------------------------------------------------------------------*/
 #ifndef RTKLIB_H
 #define RTKLIB_H
-#include <gtsam/slam/PriorFactor.h>
-#include <gtsam/geometry/Pose2.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -41,6 +38,10 @@
 #include <math.h>
 #include <time.h>
 #include <ctype.h>
+#include <gtsam/slam/PriorFactor.h>
+#include <gtsam/geometry/Pose2.h>
+using namespace std;
+using namespace gtsam;
 #ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
@@ -56,12 +57,6 @@ extern "C" {
 #else
 #define EXPORT
 #endif
-
-	using namespace std;
-using namespace gtsam;
-
-
-
 /* constants -----------------------------------------------------------------*/
 
 #define VER_RTKLIB  "2.4.3"             /* library version */
@@ -920,22 +915,44 @@ typedef struct {        /* station parameter type */
     double hgt;         /* antenna height (m) */
 } sta_t;
 
-typedef struct {        /* solution (one epoch) type: pos + vel + corvariance */
-    gtime_t time;       /* time (GPST) */
-    double rr[6];       /* position/velocity (m|m/s) */
-                        /* {x,y,z,vx,vy,vz} or {e,n,u,ve,vn,vu} */
-    float  qr[6];       /* position variance/covariance (m^2) */
-                        /* {c_xx,c_yy,c_zz,c_xy,c_yz,c_zx} or */
-                        /* {c_ee,c_nn,c_uu,c_en,c_nu,c_ue} */
-    float  qv[6];       /* velocity variance/covariance (m^2/s^2) */
-    double dtr[6];      /* receiver clock bias to time systems (s) */
-    unsigned char type; /* type (0:xyz-ecef,1:enu-baseline) */
-    unsigned char stat; /* solution status (SOLQ_???) */
-    unsigned char ns;   /* number of valid satellites */
-    float age;          /* age of differential (s) */
-    float ratio;        /* AR ratio factor for valiation */
-    float thres;        /* AR ratio threshold for valiation */
-} sol_t;
+//typedef struct {        /* solution (one epoch) type: pos + vel + corvariance */
+//    gtime_t time;       /* time (GPST) */
+//    double rr[6];       /* position/velocity (m|m/s) */
+//                        /* {x,y,z,vx,vy,vz} or {e,n,u,ve,vn,vu} */
+//    float  qr[6];       /* position variance/covariance (m^2) */
+//                        /* {c_xx,c_yy,c_zz,c_xy,c_yz,c_zx} or */
+//                        /* {c_ee,c_nn,c_uu,c_en,c_nu,c_ue} */
+//    float  qv[6];       /* velocity variance/covariance (m^2/s^2) */
+//    double dtr[6];      /* receiver clock bias to time systems (s) */
+//    unsigned char type; /* type (0:xyz-ecef,1:enu-baseline) */
+//    unsigned char stat; /* solution status (SOLQ_???) */
+//    unsigned char ns;   /* number of valid satellites */
+//    float age;          /* age of differential (s) */
+//    float ratio;        /* AR ratio factor for valiation */
+//    float thres;        /* AR ratio threshold for valiation */
+//} sol_t;
+
+/* modified sol_t*/
+typedef struct {        /* solution type */
+     gtime_t time;       /* time (GPST) */
+     gtime_t eventime;   /* time of event (GPST) */
+     double rr[6];       /* position/velocity (m|m/s) */
+                         /* {x,y,z,vx,vy,vz} or {e,n,u,ve,vn,vu} */
+     float  qr[6];       /* position variance/covariance (m^2) */
+                         /* {c_xx,c_yy,c_zz,c_xy,c_yz,c_zx} or */
+                         /* {c_ee,c_nn,c_uu,c_en,c_nu,c_ue} */
+     float  qv[6];       /* velocity variance/covariance (m^2/s^2) */
+     double dtr[6];      /* receiver clock bias to time systems (s) */
+     unsigned char type; /* type (0:xyz-ecef,1:enu-baseline) */
+     unsigned char stat; /* solution status (SOLQ_???) */
+     unsigned char ns;   /* number of valid satellites */
+     float age;          /* age of differential (s) */
+     float ratio;        /* AR ratio factor for valiation */
+     float prev_ratio1;   /* previous initial AR ratio factor for validation */
+     float prev_ratio2;   /* previous final AR ratio factor for validation */
+     float thres;        /* AR ratio threshold for valiation */
+     int fix;
+ } sol_t;
 
 typedef struct {        /* solution buffer type */
     int n,nmax;         /* number of solution/max number of buffer */
@@ -1209,20 +1226,154 @@ typedef struct {        /* ambiguity control type */
     char flags[MAXSAT]; /* fix flags */
 } ambc_t;
 
-typedef struct {        /* RTK control/result type */
-    sol_t  sol;         /* RTK solution */
-    double rb[6];       /* base position/velocity (ecef) (m|m/s) */
-    int nx,na;          /* number of float states/fixed states */
-    double tt;          /* time difference between current and previous (s) */
-    double *x, *P;      /* float states and their covariance, float states pre-filter and post-filter*/
-    double *xa,*Pa;     /* fixed states and their covariance, float covariance pre-filter and post-filter */
-    int nfix;           /* number of continuous fixes of ambiguity */
-    ambc_t ambc[MAXSAT]; /* ambibuity control */
-    ssat_t ssat[MAXSAT]; /* satellite status */
-    int neb;            /* bytes in error message buffer */
-    char errbuf[MAXERRMSG]; /* error message buffer */
-    prcopt_t opt;       /* processing options */
-} rtk_t;
+//typedef struct {        /* RTK control/result type */
+//    sol_t  sol;         /* RTK solution */
+//    double rb[6];       /* base position/velocity (ecef) (m|m/s) */
+//    int nx,na;          /* number of float states/fixed states */
+//    double tt;          /* time difference between current and previous (s) */
+//    double *x, *P;      /* float states and their covariance, float states pre-filter and post-filter*/
+//    double *xa,*Pa;     /* fixed states and their covariance, float covariance pre-filter and post-filter */
+//    int nfix;           /* number of continuous fixes of ambiguity */
+//    ambc_t ambc[MAXSAT]; /* ambibuity control */
+//    ssat_t ssat[MAXSAT]; /* satellite status */
+//    int neb;            /* bytes in error message buffer */
+//    char errbuf[MAXERRMSG]; /* error message buffer */
+//    prcopt_t opt;       /* processing options */
+//} rtk_t;
+
+/* ------structs below are added ,rtk_t is modified ----------- */
+typedef struct rtk_t {        /* RTK control/result type */
+        sol_t  sol;         /* RTK solution */
+        double rb[6];       /* base position/velocity (ecef) (m|m/s) */
+        int nx, na;          /* number of float states/fixed states */
+        double tt;          /* time difference between current and previous (s) */
+        double* x, * P;      /* float states and their covariance */
+        double* xa, * Pa;     /* fixed states and their covariance */
+        int nfix;           /* number of continuous fixes of ambiguity */
+        int excsat;         /* index of next satellite to be excluded for partial ambiguity resolution */
+        int nb_ar;          /* number of ambiguities used for AR last epoch */
+        double com_bias;    /* phase bias common between all sats (used to be distributed to all sats */
+        char holdamb;       /* set if fix-and-hold has occurred at least once */
+        ambc_t ambc[MAXSAT]; /* ambiguity control */
+        ssat_t ssat[MAXSAT]; /* satellite status */
+        int neb;            /* bytes in error message buffer */
+        char errbuf[MAXERRMSG]; /* error message buffer */
+        prcopt_t opt;       /* processing options */
+        int initial_mode;   /* initial positioning mode */
+        double daytime;
+
+
+        int nn, nu, nr;	                     /* nn=nu+nr nr:satellite num of base  nu:satellite num of rover*/
+        int ns;                              /*common satellite num between base and rover*/
+        int nv;                              //number of double-differenced observed value
+        int vflg[MAXOBS * NFREQ * 2 + 1];    //rover, base, observed value type, freqency:(sat[i] << 16) | (sat[j] << 8) | ((code ? 1 : 0) << 4) | (frq);
+        int sat[MAXSAT];
+        int ir[MAXSAT], iu[MAXSAT];
+        double dt;                           //time difference of rover and base
+
+        double* xa_;                         /* fixed states and their covariance *///, *Pa_
+        double* P_dd_ambiguity=NULL;         /*sigle diff ambiguity covariance*/
+        double* dd_bias=NULL;                //integer ambiguity
+
+        double* P_dd_ambiguity_f = NULL;     /*sigle diff ambiguity covariance*/
+        double* dd_bias_f = NULL;            //integer ambiguity
+    } rtk_t;
+
+typedef struct rtk_check {
+        double daytime;
+        double x[9 + MAXSAT * 2];
+        int stat;
+        int kf_stat;
+        //int insfixrtkcount;
+    }rtk_check;
+    typedef struct biaskey {
+        int ref_sat;
+        int sat;
+        int f;
+        double b2, b3;
+    }biaskey;
+typedef struct sat_pair {
+        int ref_sat;
+        int sat;
+        int f;
+    }sat_pair;
+typedef struct sat_prn_ferq
+    {
+        int sat_prn_of_x;//prn
+        int ferq;//??
+    }sat_prn_ferq;
+typedef struct fr_check {
+        //int basesta;
+        //int pre_basesta;
+        //double Temp_f;
+        //unsigned long	TimeCount;		//??????
+
+        //??
+        gtime_t time;       /* time (GPST) */
+        gtime_t eventime;   /* time of event (GPST) */
+        double dt;//??vs??????????????????????????
+        int epoch_num;//?????
+
+
+        double xf[9 + MAXSAT * 2];//[????? 3??????]
+        double Pf[3*3];//
+        double vv[3];
+        double P_bias[MAXSAT * 2];//?????
+        //double	xr[9 + MAXSAT * 2];
+        double rb[6];       /* base position/velocity (ecef) (m|m/s) ????*/
+
+        //int f_stat, r_stat;
+        //int f_kfstat, r_kfstat;
+
+        int sat[MAXSAT];//??prn
+        ssat_t ssat[MAXSAT]; /* satellite status */
+
+        int nn, nu, nr,nv; /* nn=nu+nr nr??????nu??????*/
+        int sat_ns;//?????
+        int num_sat_pair;//???????
+        int vflg[MAXOBS * NFREQ * 2 + 1];//????????????????????????(??0???1)???(sat[i] << 16) | (sat[j] << 8) | ((code ? 1 : 0) << 4) | (frq)
+        int bias_index[MAXOBS * NFREQ * 2 + 1];//Double difference ambiguity index of vector double_diff_pair and double_diff_pair_times
+        int stat;//SOLQ_NONE-0????????SOLQ_FIX-1????SOLQ_FLOAT-2???
+        /*
+        sat1 = (vflg[i] >> 16) & 0xFF;
+        sat2 = (vflg[i] >> 8) & 0xFF;
+        type = (vflg[i] >> 4) & 0xF;
+        freq = vflg[i] & 0xF;
+        */
+
+        //double *rs, *dts, *var;//rs:6*n,???????dts 2*n {bias,drift} (s|s/s);var:sat position and clock error variances (m^2)
+        //int *svh;//sat health flag (-1:correction not available)
+
+
+        /*int cycle_slip_flag;
+        int cycle_slip[MAXSAT];*/
+
+        int iu[MAXSAT], ir[MAXSAT];//???obs?????
+        obsd_t obs[MAXOBS * 2]; /* for rover and base */
+
+        double dd_bias[MAXOBS * NFREQ * 2 + 1];//???????,??????
+
+    }fr_check;
+
+typedef struct ambi_infor
+    {
+        int key=0;
+        int bias_flag;/*dd_bias vflg= (sat[i] << 16) | (sat[j] << 8) | ((code ? 1 : 0) << 4) | (frq);
+                      sd_bias flg= (sat[i] << 16) | (sat[j] << 8) | ((code ? 1 : 0) << 4) | (frq);*/
+        int epoch_s;//epoch count of the start time
+        int epoch_e;//epoch count of the end time
+        double bias;
+        double bias0;
+        int slipcount;
+        gtime_t t_start;
+        gtime_t t_end;
+        double q;
+        int num;//?????
+
+    }ambi_infor;
+
+/* structs above are added */
+
 
 typedef struct half_cyc_tag {  /* half-cycle correction list type */
     unsigned char sat;  /* satellite number */
@@ -1410,6 +1561,15 @@ extern const sbsigpband_t igpband1[9][8]; /* SBAS IGP band 0-8 */
 extern const sbsigpband_t igpband2[2][5]; /* SBAS IGP band 9-10 */
 extern const char *formatstrs[];     /* stream format strings */
 extern opt_t sysopts[];              /* system options table */
+extern vector<fr_check*> fr_c;
+extern vector<int> bias_flg;//??????????vflg???????????????
+extern set<int> dd_pair_set;
+extern vector<ambi_infor*> d_ambi;//????????
+extern vector<int> key_pos;
+extern int key_ambi_global ;
+
+
+
 
 /* satellites, systems, codes functions --------------------------------------*/
 EXPORT int  satno   (int sys, int prn);
@@ -1484,6 +1644,7 @@ EXPORT int reppath(const char *path, char *rpath, gtime_t time, const char *rov,
                    const char *base);
 EXPORT int reppaths(const char *path, char *rpaths[], int nmax, gtime_t ts,
                     gtime_t te, const char *rov, const char *base);
+EXPORT double get_daytime(gtime_t tinput);
 
 /* coordinates transformation ------------------------------------------------*/
 EXPORT void ecef2pos(const double *r, double *pos);
@@ -1842,6 +2003,7 @@ EXPORT int pppcorr_trop(const pppcorr_t *corr, gtime_t time, const double *pos,
                         double *ztd, double *std);
 EXPORT int pppcorr_stec(const pppcorr_t *corr, gtime_t time, const double *pos,
                         double *ion, double *std);
+EXPORT void detslp_mw_(rtk_t *rtk, const obsd_t *obs, int n, const nav_t *nav);
 
 /* post-processing positioning -----------------------------------------------*/
 EXPORT int postpos(gtime_t ts, gtime_t te, double ti, double tu,

@@ -1196,6 +1196,35 @@ static int ddres(rtk_t *rtk, const nav_t *nav, double dt, const double *x,
                         Hi[IB(sat[i],f,opt)]= lami;
                         Hi[IB(sat[j],f,opt)]=-lamj;
                     }
+                    /*add by yansudan,calculate dd_ambi which matches the ddres
+                                            donot save the reault form LAMBDA,it doesn't match the ddres here******************/
+                    rtk->dd_bias[nv] = x[IB(sat[i], f, opt)] - x[IB(sat[j], f, opt)];
+                    if (P != NULL) {
+                        double *D;
+                        double *dd_P, *P_dd_ambi,*DP;
+                        dd_P = mat(2, 2); D = mat(2, 1);DP = mat(1, 2); P_dd_ambi = mat(1, 1);
+
+                        D[0] = 1; D[1] = -1;
+
+                        dd_P[0] = P[IB(sat[i], f, opt) + IB(sat[i], f, opt)*rtk->nx];
+                        dd_P[3] = P[IB(sat[j], f, opt) + IB(sat[j], f, opt)*rtk->nx];
+                        dd_P[1] = P[IB(sat[i], f, opt) + IB(sat[j], f, opt)*rtk->nx];
+                        dd_P[2] = P[IB(sat[j], f, opt) + IB(sat[i], f, opt)*rtk->nx];
+
+                        matmul("TN", 1, 2, 2, 1.0, D, dd_P, 0.0, DP);   /* DP=D'*P */
+                        matmul("NN", 1, 1, 2, 1.0, DP, D, 0.0, P_dd_ambi);   /* Qy=DP'*D */
+
+                        //matmul("TN", ny, nx, nx, 1.0, D, rtk->P, 0.0, DP);   /* DP=D'*P */
+                        //matmul("NN", ny, ny, nx, 1.0, DP, D, 0.0, Qy);   /* Qy=DP'*D */*/
+
+
+                        /*rtk->P_dd_ambiguity[nv] = (P[IB(sat[i], frq, opt) + IB(sat[i], frq, opt)*rtk->nx] +
+                            P[IB(sat[j], frq, opt) + IB(sat[j], frq, opt)*rtk->nx]) / 2;*/
+                        rtk->P_dd_ambiguity[nv] = P_dd_ambi[0];
+
+                        free(dd_P); free(D); free(DP); free(P_dd_ambi);
+                        /************************************************************************************/
+                    }
                 }
                 else {
                     v[nv]-=x[IB(sat[i],f,opt)]-x[IB(sat[j],f,opt)];
@@ -1544,7 +1573,7 @@ static int valpos(rtk_t *rtk, const double *v, const double *R, const int *vflg,
         sat2=(vflg[i]>> 8)&0xFF;
         type=(vflg[i]>> 4)&0xF;
         freq=vflg[i]&0xF;
-        stype=type==0?const_cast<char *>("L"):(type==1?const_cast<char *>("L"):const_cast<char *>("C"));
+        stype=type==0?const_cast<char*>("L"):(type==1?const_cast<char*>("L"):const_cast<char*>("C"));
         errmsg(rtk,"large residual (sat=%2d-%2d %s%d v=%6.3f sig=%.3f)\n",
               sat1,sat2,stype,freq+1,v[i],SQRT(R[i+i*nv]));
     }
@@ -1613,6 +1642,10 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
         free(rs); free(dts); free(var); free(y); free(e); free(azel);
         return 0;
     }
+    rtk->ns=ns;
+    for (i = 0; i < ns; i++) {
+        rtk->sat[i] = sat[i];
+    }
     /* temporal update of states */
     udstate(rtk,obs,sat,iu,ir,ns,nav);
     
@@ -1640,6 +1673,7 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
             stat=SOLQ_NONE;
             break;
         }
+        rtk->nv=nv;
         /* kalman filter measurement update */
         matcpy(Pp,rtk->P,rtk->nx,rtk->nx);
         if ((info=filter(xp,Pp,H,v,R,rtk->nx,nv))) {
@@ -1708,6 +1742,23 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,
             }
         }
     }
+
+    rtk->daytime = get_daytime(rtk->sol.time);
+
+    rtk->dt = dt;
+
+    rtk->nn = n;
+    rtk->nu = nu;
+    rtk->nr = nr;
+
+    for (i = 0; i < nu && i < nr; i++) {
+        rtk->iu[i] = iu[i];
+        rtk->ir[i] = ir[i];
+    }
+    rtk->nv = nv;
+    memcpy(rtk->vflg, vflg, sizeof(int) * nv);
+    matcpy(rtk->xa_, xa, rtk->nx, 1);
+
     /* save solution status */
     if (stat==SOLQ_FIX) {
         for (i=0;i<3;i++) {
@@ -1800,7 +1851,25 @@ extern void rtkinit(rtk_t *rtk, const prcopt_t *opt)
     }
     for (i=0;i<MAXERRMSG;i++) rtk->errbuf[i]=0;
     rtk->opt=*opt;
+    /*add by yansudan************************************************************************/
+    rtk->xa_ = zeros(rtk->nx, 1);
+    rtk->dd_bias = mat(rtk->nx - rtk->na, 1);
+    rtk->P_dd_ambiguity = mat(rtk->nx - rtk->na, 1);
+    rtk->dd_bias_f = mat(rtk->nx - rtk->na, 1);
+    rtk->P_dd_ambiguity_f = mat(rtk->nx - rtk->na, 1);
+    /****************************************************************************************/
 }
+
+extern double get_daytime(gtime_t tinput)
+{
+   gtime_t timegps = gpst2utc(tinput);
+   int gweek;
+   double tow = time2gpst(timegps, &gweek);
+   int daytime = 86400;
+   double result = tow - (int)(tow / daytime) * 86400.0;
+   return result;
+}
+
 /* free rtk control ------------------------------------------------------------
 * free memory for rtk control struct
 * args   : rtk_t    *rtk    IO  rtk control/result struct
@@ -1815,6 +1884,23 @@ extern void rtkfree(rtk_t *rtk)
     free(rtk->P ); rtk->P =NULL;
     free(rtk->xa); rtk->xa=NULL;
     free(rtk->Pa); rtk->Pa=NULL;
+    free(rtk->xa_); rtk->xa_ = NULL;
+    if (rtk->P_dd_ambiguity != NULL)
+    {
+        free(rtk->P_dd_ambiguity); rtk->P_dd_ambiguity = NULL;
+    }
+    if (rtk->dd_bias != NULL)
+    {
+        free(rtk->dd_bias); rtk->dd_bias = NULL;
+    }
+    if (rtk->P_dd_ambiguity_f != NULL)
+    {
+        free(rtk->P_dd_ambiguity_f); rtk->P_dd_ambiguity_f = NULL;
+    }
+    if (rtk->dd_bias_f != NULL)
+    {
+        free(rtk->dd_bias_f); rtk->dd_bias_f = NULL;
+    }
 }
 /* precise positioning: for one epoch-------------------------------------------
 * input observation data and navigation message, compute rover position by 
@@ -1896,7 +1982,9 @@ extern int rtkpos(rtk_t *rtk, const obsd_t *obs, int n, const nav_t *nav)
     /* count rover/base station observations */
     for (nu=0;nu   <n&&obs[nu   ].rcv==1;nu++) ;
     for (nr=0;nu+nr<n&&obs[nu+nr].rcv==2;nr++) ;
-    
+    rtk->nu=nu;
+    rtk->nr=nr;
+    rtk->nn=nu+nr;
     time=rtk->sol.time; /* previous epoch */
     
     /* rover position by single point positioning */

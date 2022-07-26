@@ -10,6 +10,13 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets serialport
 
 include(../../RTKLib.pri)
 
+lessThan(QT_MAJOR_VERSION, 5) {
+    LIBS += -lqextserialport-1.2
+    DEFINES += QEXTSERIALPORT
+}
+
+
+INCLUDEPATH += ../../src/ ../appcmn_qt
 INCLUDEPATH += /usr/include
 INCLUDEPATH += /usr/local/include
 INCLUDEPATH += /usr/local/include/gtsam
@@ -18,16 +25,6 @@ INCLUDEPATH += /usr/include/eigen3
 LIBS += -lboost_system
 LIBS += -ltbb
 LIBS += -L /usr/local/lib -lgtsam
-
-
-lessThan(QT_MAJOR_VERSION, 5) {
-    LIBS += -lqextserialport-1.2
-    DEFINES += QEXTSERIALPORT
-}
-
-
-INCLUDEPATH += ../../src/ ../appcmn_qt
-
 linux{
     RTKLIB =../../src/libRTKLib.a
     LIBS += -lpng $${RTKLIB}

@@ -12,15 +12,6 @@ include(../../RTKLib.pri)
 
 INCLUDEPATH += ../../src/ ../appcmn_qt
 
-INCLUDEPATH += /usr/include
-INCLUDEPATH += /usr/local/include
-INCLUDEPATH += /usr/local/include/gtsam
-INCLUDEPATH += /usr/include/eigen3
-
-LIBS += -lboost_system
-LIBS += -ltbb
-LIBS += -L /usr/local/lib -lgtsam
-
 linux{
     RTKLIB =../../src/libRTKLib.a
     LIBS += -lpng $${RTKLIB}
@@ -34,7 +25,14 @@ win32 {
 
     LIBS+= $${RTKLIB} -lWs2_32 -lwinmm
 }
+INCLUDEPATH += /usr/include
+INCLUDEPATH += /usr/local/include
+INCLUDEPATH += /usr/local/include/gtsam
+INCLUDEPATH += /usr/include/eigen3
 
+LIBS += -lboost_system
+LIBS += -ltbb
+LIBS += -L /usr/local/lib -lgtsam
 PRE_TARGETDEPS = $${RTKLIB}
 
 TARGET = rtkget_qt
