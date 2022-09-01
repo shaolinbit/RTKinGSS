@@ -2,7 +2,7 @@
 This project contains the open source codes for the paper "Global RTK Positioning in Graphical State Space"
 This paper will be presented at ION GNSS+ 2022.
 The library was built in Ubuntu 16.04. The results may be different for different OS. If any problem was found by you, please propose an issue or report to
-4050627@qq.com.
+4050627@qq.com. The rtk part was modified from RTKlib to C++ style.
 
 ## How to use this project
 ### 1)Required
