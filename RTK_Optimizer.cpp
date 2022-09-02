@@ -6,13 +6,13 @@ namespace gtsam
 void RTKO_GenerateTrajectory_dd(const nav_t* nav,const prcopt_t* opt)
 {
 	int i, j, k;
-	//int valid_count = 0;
+
 	for (i = 0; i < d_ambi.size(); i++)
 	{
 		RTKO_insertnewvalue_xb(d_ambi.at(i)->key, d_ambi.at(i)->bias);//+
 		RTKO_add_ddambi_Priori(d_ambi.at(i)->key, d_ambi.at(i));//
 	}
-	for (i = 0; i < fr_c.size(); i++)//,4314i = 500; i < 1000; i++
+	for (i = 0; i < fr_c.size(); i++)
 	{
 		if (fr_c.at(i)->stat <= 0)
 		{
@@ -48,22 +48,20 @@ void RTKO_GenerateTrajectory_dd(const nav_t* nav,const prcopt_t* opt)
 
 	if (newerror > nowerror)
 	{
-		//Clear_RTKvariables();
 		return;
 	}
 
 	FILE* fp = fopen("../data/output/graph_result_dd.txt", "w");
 	for (i = 0; i < fr_c.size(); i++)//fr_c.size()
 	{
-		//std::map<int, minimatrix*>::const_iterator xbegin = RTK_Optimize_result.find(fr_c.at(i)->epoch_num);
+
 
 		Key bb=(Key)(fr_c.at(i)->epoch_num);
-      //  Values::const_iterator xbegin = RTK_Optimize_result.find(bb);
-        Values::iterator xbegin=RTK_Optimize_result.find(bb);
-		//Values::const_iterator xbegin = RTK_Optimize_result.find((Key)(fr_c.at(i)->epoch_num));
+    Values::iterator xbegin=RTK_Optimize_result.find(bb);
+
 		if (fr_c.at(i)->stat <= 0)
 			continue;
-		//fprintf(fp, "%d\t", fr_c.at(i)->epoch_num);
+
 		int week;
 		double sec;
 		sec = time2gpst(fr_c.at(i)->time, &week);
@@ -74,8 +72,6 @@ void RTKO_GenerateTrajectory_dd(const nav_t* nav,const prcopt_t* opt)
         Vector3 value_vector = xbegin->value.cast<gtsam::Vector3>();
 		for (k = 0; k < 3; k++)
 		{
-			//pos[k] = xbegin->second->data[k] + fr_c.at(i)->xf[k];
-            //pos[k] = xbegin(k) + fr_c.at(i)->xf[k];
             pos[k] = value_vector[k] + fr_c.at(i)->xf[k];
 		}
 		ecef2pos(pos, blh);
@@ -88,88 +84,73 @@ void RTKO_GenerateTrajectory_dd(const nav_t* nav,const prcopt_t* opt)
 	}
 	fclose(fp);
     cout<<"program end"<<endl;
-	//�ͷ��ڴ�
-//	Clear_RTKvariables();
+
 
 	return;
 }
 
 void RTKO_insertnewvalue_xb(const int ambi_count, const double dd_bias)
 {
-	//int key = Symbol('b', ambi_count).key();
+
 	int key = ambi_count + 100000;
-	//minivector* cb = new minivector(1);
-	//Vector* cb = new Vector(1);
+
 	Vector1 cb;
-	//cb->data[0] = 0;// dd_bias;
-    cb(0)= 0;//
-	//RTKvalues.insert(std::make_pair(key, cb));
+  cb(0)= 0;//
+
 	RTKvalues.insert(key,cb);
 }
 
 void RTKO_add_ddambi_Priori(const int ambi_count, const ambi_infor* dd_ambi)//, NonlinearFactorGraph *Factors)
 {
-	//int key = Symbol('b', ambi_count).key();
-    int key = ambi_count + 100000;
-	//minivector* cb = new minivector(1);
-	//Vector* cb = new Vector(1);
 
-	//cb->data[0] = 0;//dd_ambi->bias;
-    //cb[0][0] = 0;//
+    int key = ambi_count + 100000;
+
 
     	Vector1 cb;
 	cb(0) =0;
 
-	//minivector nvq(1);
+
 	Vector1 nvq;
-	//nvq.data[0] = sqrt(dd_ambi->q);
+
     nvq(0) = sqrt(dd_ambi->q);
-	//GaussianNoiseModel* Priornoise = new  GaussianNoiseModel(nvq);
-    //gtsam::SharedNoiseModel* Priornoise = new gtsam::noiseModel::Gaussian::diagonal(nvq);
 
         noiseModel::Diagonal::shared_ptr Priornoise = noiseModel::Diagonal::Sigmas(Vector1( sqrt(dd_ambi->q)));
 
-	//PriorFactor* nfb = new PriorFactor((int)key, cb, Priornoise);
-
-	//Factors->push_back(nfb);
 
 		RTKFactors.emplace_shared<PriorFactor<Vector1>>((int)key, cb, Priornoise);
 }
 
 void RTKO_insertnewvalue_xc(int tcount, const double* x, const fr_check* frc)
 {
-	//minivector* cb = new minivector(3);
+
 	Vector3 cb ;
 	for (int i = 0; i <3; i++)
 	{
-		//cb->data[i] = 0;//frc->xf[i] - frc->rb[i]
 		cb(i) = 0;
 	}
-	//RTKvalues.insert(std::make_pair(tcount, cb));
+
 	RTKvalues.insert(tcount,cb);
 }
 
-void RTKO_add_Position_Priori(const fr_check* frc)//, NonlinearFactorGraph *Factors)
+void RTKO_add_Position_Priori(const fr_check* frc)
 {
 	int i;
 
 
 	for (i = 0; i < 3; i++)
 	{
-		if (frc->Pf[i]>5&&frc->stat> SOLQ_NONE)//&&frc->nv>0
+		if (frc->Pf[i]>5&&frc->stat> SOLQ_NONE)
 		{
 			return;
 		}
 	}
 
-	//minivector* cbb = new minivector(3);
-	//minivector nvq(3);
 
-	Vector3 cbb;// = new Vector(3);
-	Vector3 nvq;//(3);
+
+	Vector3 cbb;
+	Vector3 nvq;
 	for (i = 0; i < 3; i++)
 	{
-		//cbb->data[i] = 0;//frc->xf[i] - frc->rb[i]
 		cbb(i) = 0;
 	}
 
@@ -177,7 +158,6 @@ void RTKO_add_Position_Priori(const fr_check* frc)//, NonlinearFactorGraph *Fact
 	{
 		for (int i = 0; i < 3; i++)
 		{
-			//nvq.data[i] = sqrt(frc->Pf[i]);///2.0
 			nvq(i) = sqrt(frc->Pf[i]);
 		}
 	}
@@ -185,7 +165,6 @@ void RTKO_add_Position_Priori(const fr_check* frc)//, NonlinearFactorGraph *Fact
 	{
 		for (int i = 0; i < 3; i++)
 		{
-			//nvq.data[i] = sqrt(frc->Pf[i]);
 			nvq(i) = sqrt(frc->Pf[i]);
 		}
 	}
@@ -193,22 +172,13 @@ void RTKO_add_Position_Priori(const fr_check* frc)//, NonlinearFactorGraph *Fact
 	{
 		for (int i = 0; i < 3; i++)
 		{
-			//nvq.data[i] = sqrt(frc->Pf[i]);//*100
 			nvq(i)= sqrt(frc->Pf[i]);
 		}
 	}
 
 
-
-	//return;
-
-	//GaussianNoiseModel* Priornoise = new  GaussianNoiseModel(nvq);
-
 	    noiseModel::Diagonal::shared_ptr Priornoise = noiseModel::Diagonal::Sigmas(nvq);
 
-	//PriorFactor* nfb = new PriorFactor((int)frc->epoch_num, cbb, Priornoise);
-
-	//Factors->push_back(nfb);
 
 		RTKFactors.emplace_shared<PriorFactor<Vector3>>((int)frc->epoch_num, cbb, Priornoise);
 }
@@ -227,7 +197,6 @@ void RTKO_add_ddres_Factor(fr_check* frc, const nav_t* nav, const prcopt_t* opt)
 
 	rs = mat(6, n);
 	dts = mat(2, n);
-	//y = mat(nf, n);
 	var = mat(1, n);
 	e_ = mat(3, n);
 	azel = rtklib_zeros(2, n);
@@ -256,7 +225,7 @@ void RTKO_add_ddres_Factor(fr_check* frc, const nav_t* nav, const prcopt_t* opt)
 	ny = frc->sat_ns * nf * 2 + 2;
 	v = mat(ny, 1); H = rtklib_zeros(9+MAXOBS*nf, ny); R = mat(ny, ny); RR = mat(ny, 1);
 
-	int *ref_sat_index = new int[5 * 2 * nf];//�������ϵͳ���ز�andα�ࡢƵ��
+	int *ref_sat_index = new int[5 * 2 * nf];
 	for (i = 0; i < (5 * 2 * nf); i++) { ref_sat_index[i] = -1; }
 
 	if ((obs[0].time.time == 1574120750) && (obs[0].time.sec == 0.0))
@@ -315,30 +284,20 @@ void RTKO_add_ddres_Factor(fr_check* frc, const nav_t* nav, const prcopt_t* opt)
 
 			base_singal_diff_res =  - y[f + frc->ir[ref_index_index] * nf * 2]+ y[f + frc->ir[i] * nf * 2];
 
-			double data = sqrt(RR[v_index]);//�����λ�����R[k + i + (k + i) * nv]
+			double data = sqrt(RR[v_index]);
 
-			//minivector sigma(1);
-			//Vector sigma(1);
-			//sigma.data[0] = data;
-			//sigma[0] = data;
-			//GaussianNoiseModel* GN = new GaussianNoiseModel(sigma);
 
 			    noiseModel::Diagonal::shared_ptr GN = noiseModel::Diagonal::Sigmas(Vector1(data));
 
-			if (!type)//
+			if (!type)
 			{
-				//key_abmi = Symbol(symbol('b', d_ambi.at(frc->bias_index[v_index])->key)).key();
-                key_abmi = d_ambi.at(frc->bias_index[v_index])->key + 100000;
+        key_abmi = d_ambi.at(frc->bias_index[v_index])->key + 100000;
 				double lami = nav->lam[frc->sat[i] - 1][f%opt->nf];
 				double ambi0 = d_ambi.at(frc->bias_index[v_index])->bias;
 
-				if (v[v_index] < 10) {//20 * sigma.data[0]
-					//RTK_ddres_Factor_L_dd *rf;
-					//rf = new RTK_ddres_Factor_L_dd(frc->epoch_num, key_abmi, frc, nav, opt, base_singal_diff_res,
-						//i, ref_index_index, f, GN, v[v_index], lami, ambi0);
-				///	RTKFactors.push_back(rf);
+				if (v[v_index] < 10) {
 
-                    RTKFactors.emplace_shared<RTK_ddres_Factor_L_dd>(frc->epoch_num, key_abmi, frc, nav, opt, base_singal_diff_res,
+            RTKFactors.emplace_shared<RTK_ddres_Factor_L_dd>(frc->epoch_num, key_abmi, frc, nav, opt, base_singal_diff_res,
 						i, ref_index_index, f, GN, v[v_index], lami, ambi0);
 
 				}
@@ -347,11 +306,7 @@ void RTKO_add_ddres_Factor(fr_check* frc, const nav_t* nav, const prcopt_t* opt)
 			else
 			{
 				if (v[v_index] < 10) {
-					//RTK_ddres_Factor_P *rf;
-					//key_abmi = dd_pair.at(frc->pair_index[v_index]) + dd_ambi_infors.at(frc->pair_index[v_index])->epoch_s;
-					//rf = new RTK_ddres_Factor_P(frc->epoch_num, frc, nav, opt, base_singal_diff_res,
-					//	i, ref_index_index, f, GN, v[v_index]);
-					//RTKFactors.push_back(rf);
+
 					    RTKFactors.emplace_shared<RTK_ddres_Factor_P>(frc->epoch_num, frc, nav, opt, base_singal_diff_res,
 						i, ref_index_index, f, GN, v[v_index]);
 

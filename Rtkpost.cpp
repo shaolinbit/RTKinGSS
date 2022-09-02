@@ -7,17 +7,11 @@ extern gtime_t pro_time;
 bool working=false;
 bool flag;
 int arminfix;
-//int SYNCRTKIMUFlag;
 int dayflag;
 
 
-//extern vector<fr_check*> fr_c;
-//extern vector<int> bias_flg;//双差模糊度组合信息（vflg）：基站卫星、流动站卫星、频率
-//extern vector<ambi_infor*> d_ambi;//双差模糊度的时间
 
-//vector<int> dd_ambi_num;//临时变量用于统计双差模糊度
 int data_num = 0;
-//__int64 t0 = 0;
 int frc_index_s;
 
 
@@ -140,7 +134,6 @@ int execses(gtime_t ts, gtime_t te, double ti, const prcopt_t* popt,
 	const solopt_t* sopt, const filopt_t* fopt, int flag,
 	char** infile, const int* index, int n, char* outfile)
 {
-	//_CrtSetBreakAlloc(237227);//1253361
 
 	FILE* fp, * fptm;// *file;
 	rtk_t rtk;
@@ -276,13 +269,12 @@ int execses(gtime_t ts, gtime_t te, double ti, const prcopt_t* popt,
 			}
 			fclose(fp);
 
-			/* 图优化 */
+			/* factor optimization to generate trajectory */
 			gtsam::RTKO_GenerateTrajectory_dd(&navs, popt);
 
 			/*free memory*/
 
 
-		//	dd_ambi_num.clear();
 
 			for (int i = 0; i < fr_c.size(); i++)
 			{
@@ -305,7 +297,7 @@ int execses(gtime_t ts, gtime_t te, double ti, const prcopt_t* popt,
 
 			baseline.clear();
 			key_pos.clear();
-			//Clear_RTKvariables();
+
 		}
 		else showmsg("error : memory allocation");
 		free(solf);
@@ -386,7 +378,7 @@ int avepos_(double* ra, int rcv, const obs_t* obs, const nav_t* nav,
 
 		if (!pntpos(data, j, nav, opt, &sol, NULL, NULL, msg)) continue;
 
-		///* 输出基站单点定位结果 */
+
 		//FILE *fp;
 		//fp = fopen("basepos.txt", "a+");
 		//fprintf(fp, "%d  %f  %f  %f \n", n,sol.rr[0], sol.rr[1], sol.rr[2]);
@@ -567,21 +559,21 @@ int readobsnav(gtime_t ts, gtime_t te, double ti, char** infile,
 
 void savedata_fr_c(rtk_t *rtk, const prcopt_t* popt, const obsd_t* obs, const int nobs, const int isolf)
 {
-	//单点定位结果都没有的时候不要存
+
 	if (norm(rtk->sol.rr, 3) < 10)
 		return;
 
-	//没有rtk结果的历元该怎么处理，ddres_也不能直接找dd_pair里面存的数？？？
-	if (rtk->sol.stat == SOLQ_NONE)//不能用此判断，L1不足4就会被置0,但是实际上是进行了kf计算，有可用的双差
+
+	if (rtk->sol.stat == SOLQ_NONE)
 	{
 		double bb = rtk->nv;
 	}
 
 
-	//存储前向rtk的结果数据===============================================================
-	int i, j, k;//*ix, p = (double*)malloc(sizeof(double) * n * m))
+	//storage forward kf results===============================================================
+	int i, j, k;
 	fr_check* fr_cc = new fr_check;
-	int sd_ambiguity_num;//单差模糊度数量
+	int sd_ambiguity_num;
 
 	/*-----------------------------------------------------------------*/
 	//fr_cc->dd_bias = mat(rtk->nv, 1);
@@ -601,30 +593,21 @@ void savedata_fr_c(rtk_t *rtk, const prcopt_t* popt, const obsd_t* obs, const in
 		fr_cc->vv[i] = rtk->sol.rr[i + 3];
 	}
 
-	//基站位置
+	//base station position
 	for (i = 0; i < 6; i++) {
-		fr_cc->rb[i] = rtk->rb[i];//基站是固定的，应该不需要每个历元都存
+		fr_cc->rb[i] = rtk->rb[i];
 	}
 
-	//协方差
-	////坐标协方差
-	//for (i = 0; i < 3; i++)
-	//{
-	//	for (j = 0; j < 3; j++)
-	//	{
-	//		fr_cc->Pf[i*(3) + j] = rtk->P[i*rtk->nx + j];
-	//	}
-	//}
 
-	//坐标协方差
+
 	for (i = 0; i < 6; i++)
 	{
 		fr_cc->Pf[i] = rtk->sol.qr[i];
 	}
 
-	//本历元双差模糊度的信息记录，同时记录是哪两个卫星，是否固定了，有无周跳
+
 	fr_cc->stat = rtk->sol.stat;
-	for (i = 0; i < MAXSAT; i++) {/*卫星周跳状态，slip整周周跳，half半周周跳*/
+	for (i = 0; i < MAXSAT; i++) {
 		fr_cc->ssat[i] = rtk->ssat[i];
 	}
 
@@ -632,7 +615,7 @@ void savedata_fr_c(rtk_t *rtk, const prcopt_t* popt, const obsd_t* obs, const in
 		fr_cc->sat[i] = rtk->sat[i];
 	}
 
-	fr_cc->sat_ns = rtk->ns;//共视卫星数
+	fr_cc->sat_ns = rtk->ns;
 
 	/*if (rtk->nfix == 0)
 	{
@@ -679,35 +662,34 @@ void savedata_fr_c(rtk_t *rtk, const prcopt_t* popt, const obsd_t* obs, const in
 	}
 
 
-	//本历元的参考站和流动站的卫星观测值
-	fr_cc->nn = rtk->nn;//基站加流动站卫星数
-	fr_cc->nr = rtk->nr;//基站卫星数
-	fr_cc->nu = rtk->nu;//流动站卫星数
+	// the observation of ref sand rover,  per epoch
+	fr_cc->nn = rtk->nn;//ref+rover satellite number
+	fr_cc->nr = rtk->nr;// ref satellite number
+	fr_cc->nu = rtk->nu;//rover satellite number
 	for (i = 0; i < nobs; i++) {
-		fr_cc->obs[i] = obs[i];//观测值本身存储全局变量里面，可以考虑写一个函数通过时间查找观测值，减少重复存储（但是这样需要每次遍历（观测值数组很大），计算量增加？？？）
+		fr_cc->obs[i] = obs[i];//observation
 	}
-	for (i = 0; i < rtk->nu && i < rtk->nr; i++) {/*记录共视卫星的prn*/
+	for (i = 0; i < rtk->nu && i < rtk->nr; i++) {/*prn of common satellites*/
 		fr_cc->iu[i] = rtk->iu[i];
 		fr_cc->ir[i] = rtk->ir[i];
 	}
 
-	/*统计双差模糊度-----------------------------------------------------*/
+ //dd ambiguity bias
 
-
-	for (i = 0, k = 0; i < rtk->nv; i++)/*双差信息，基站卫星号，流动站卫星号，观测值类型（code：0-载波，1-伪距），频率*/
+	for (i = 0, k = 0; i < rtk->nv; i++)/*dd residual，the base satellite number，the rover satellite number，observation type（code：0-carrier wave，1-pseudorange），frequency*/
 	{
-		//int type = (rtk->vflg[i] >> 4) & 0xF;
-		if (((rtk->vflg[i] >> 4) & 0xF) == 0)//载波双差
+
+		if (((rtk->vflg[i] >> 4) & 0xF) == 0)//dd residual of dd carrier wave
 		{
 			fr_cc->vflg[k++] = rtk->vflg[i];
 		}
 	}
 	fr_cc->nv = rtk->nv;
-	fr_cc->num_sat_pair = k;//双差模糊度数量
-	//fr_cc->bias_index = (int*)malloc(sizeof(int) * k * 1);//考虑记录双差模糊度在double_diff_pair中的位置
+	fr_cc->num_sat_pair = k;
 
 
-	for (i = 0; i < rtk->nv; i++)//ns:共视卫星数
+
+	for (i = 0; i < rtk->nv; i++)//ns:common satellite
 	{
 		if (((rtk->vflg[i] >> 4) & 0xF) == 1)
 			continue;
@@ -722,7 +704,7 @@ void savedata_fr_c(rtk_t *rtk, const prcopt_t* popt, const obsd_t* obs, const in
 			int index = -1, flag = 0;
 			vector<int>::iterator iter;
 
-			do//查找卫星的单差模糊度，找不到增加变量
+			do//search the single ambiguity bias, if not found, add a variable
 			{
 				iter = find(bias_flg.begin() + 1 + index, bias_flg.end(), flg);
 				index = iter - bias_flg.begin();
@@ -736,53 +718,20 @@ void savedata_fr_c(rtk_t *rtk, const prcopt_t* popt, const obsd_t* obs, const in
 					break;
 				}
 			} while (d_ambi.at(index)->epoch_e != 0);
-			if (flag == 0)//有周跳要增变量
+			if (flag == 0)//If there is cycle slip, add variable
 			{
-				//----MW周跳探测尝试------------------------------------------
+				//----MW cycle slip test------------------------------------------
 				detslp_mw_(rtk, obs, rtk->nu, &navs);
 				//--------------------------------------------
 
-				int ref_sat, u_ref_sat, f;//参考星prn, 非参考星prn, 频率 0-L1，1-L2
+				int ref_sat, u_ref_sat, f;//ref prn, non ref prn, freq: 0-L1，1-L2
 				ref_sat = (rtk->vflg[i] >> 16) & 0xFF;
 				u_ref_sat = (rtk->vflg[i] >> 8) & 0xFF;
 				f = rtk->vflg[i] & 0xF;
-				if ((rtk->ssat[ref_sat].slip[f] & 1) || (rtk->ssat[u_ref_sat].slip[f] & 1))//有周跳要增变量
+				if ((rtk->ssat[ref_sat].slip[f] & 1) || (rtk->ssat[u_ref_sat].slip[f] & 1))//If there is cycle slip, add variable
 				{
-					//-----周跳修复测试-----------------------------------------------
-					/*double sat_slip_prn[2];
-					int slip_num = 0;
-					if (rtk->ssat[ref_sat].slip[f] & 1)
-					{
-						sat_slip_prn[slip_num] = ref_sat;
-						slip_num++;
-					}
-					else if (rtk->ssat[u_ref_sat].slip[f] & 1)
-					{
-						sat_slip_prn[slip_num] = u_ref_sat;
-						slip_num++;
 
-					}
-					for (int ii = 0; ii < slip_num; ii++)
-					{
-						int iu_index = 0, repiar_flag = 0;
-						for (iu_index = 0; iu_index < MAXSAT; iu_index++)
-						{
-							if (rtk->sat[iu_index] == sat_slip_prn[ii])
-								break;
-						}
-						if (iu_index < MAXSAT)
-						{
-							repiar_flag = repair_slp_mw_gf(rtk, obs + rtk->iu[iu_index], &navs, sat_slip_prn[ii]);
-							if (repiar_flag == 1)
-							{
 
-							}
-						}
-					}
-					*/
-
-					//rtk->iu[u_ref_sat]
-					//repair_slp_mw_gf(rtk, obs+, int n, const nav_t* nav)
 					//--------------------------------------------------
 					d_ambi.at(index)->epoch_e = -1;
 					init_ambi_infor_dd(rtk->vflg[i], rtk->dd_bias[i], rtk->P_dd_ambiguity[i], fr_cc->epoch_num, fr_cc->time);
@@ -791,7 +740,7 @@ void savedata_fr_c(rtk_t *rtk, const prcopt_t* popt, const obsd_t* obs, const in
 				else
 				{
 					if ((fr_cc->epoch_num > (d_ambi.at(index)->epoch_s + d_ambi.at(index)->num))
-						||fabs(rtk->dd_bias[i]- d_ambi.at(index)->bias)>5)//有双差从几万变成两位数但不显示有周跳的情况？？？
+						||fabs(rtk->dd_bias[i]- d_ambi.at(index)->bias)>5)
 					{
 						d_ambi.at(index)->epoch_e = -1;
 						init_ambi_infor_dd(rtk->vflg[i], rtk->dd_bias[i], rtk->P_dd_ambiguity[i], fr_cc->epoch_num, fr_cc->time);
@@ -1052,12 +1001,6 @@ void procpos(FILE* fp, FILE* fptm, const prcopt_t* popt, const solopt_t* sopt,
 
 			/*save data to fr_c*/
 			savedata_fr_c(rtk, popt, obs, nobs, isolf);
-			//savedata_fr_c_2(rtk, popt, obs, nobs, isolf);
-
-			//savedata_fr_c_each_section(rtk, popt, obs, nobs, isolf, slidwin_size,2);
-			//savedata_fr_c_each_section(rtk, popt, obs, nobs, isolf, slidwin_size, 1);
-
-			//savedata_fr_c_slidwin(rtk, popt, obs, nobs, isolf, slidwin_size, 1,f_out);
 		}
 		else { /* combined-backward */
 			if (isolb >= nepoch) return;
@@ -1071,19 +1014,12 @@ void procpos(FILE* fp, FILE* fptm, const prcopt_t* popt, const solopt_t* sopt,
 		outsol(fp, &sol, rb, sopt);
 	}
 
-
-	//savedata_fr_c_each_section(rtk, popt, obs, nobs, isolf, slidwin_size,2,1);
-	//savedata_fr_c_each_section(rtk, popt, obs, nobs, isolf, slidwin_size, 1, 1);
-
-	//savedata_fr_c_slidwin(rtk, popt, obs, nobs, isolf, slidwin_size, 1, f_out, 1);
-
-	//fclose(f_out);
 }
 
 int repair_slp_mw_gf(rtk_t* rtk, const obsd_t* obs, const nav_t* nav,int prn)
 {
 	//double CLIGHT / FREQL1
-	int i = 1;//Ŀǰֻ��L1 L2���б������
+	int i = 1;
 	/* -------------- GF -------------*/
 	const double* lam = nav->lam[obs->sat - 1];
 	//int i = (satsys(obs->sat, NULL) & (SYS_GAL | SYS_SBS)) ? 2 : 1;

@@ -8,10 +8,7 @@
 #define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),  (mode)))==NULL
 #endif
 
-//using namespace std;
-//extern NAVIGATION_DATA	NaviData;
-//extern int INSFrequency;
-//extern double INS_UPDATE_TIME;
+
 unsigned char Bcd2Hex(unsigned char data)
 {
 	unsigned char temp;
@@ -81,7 +78,6 @@ int ConvertDGPS(const char* inputfile, const char* outputfile)
 	}
 	fclose(fpRead);
 	fclose(fpWrite);
-//	AfxMessageBox("DGPS文件解析成功");
 	return 0;
 }
 int ConvertNMEA(const char* inputfile, const char* outputfile)
@@ -146,4 +142,3 @@ void ConvertNMEAstruct( minmea_sentence_gga gga1, DGPSStruct& outdgps)
 	 outdgps.fix_q = gga1.fix_quality;
 	 outdgps.hdop = minmea_tofloat(&gga1.hdop);
 }
-
