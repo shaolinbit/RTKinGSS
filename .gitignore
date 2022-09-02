@@ -10,6 +10,11 @@
 *.log
 *.tlog
 *.dfm
+*.bin
+*.cmake
+*.cache
+*.marks
+*.make
 
 # Precompiled Headers
 *.gch
@@ -51,3 +56,5 @@ __history
 /test
 /build
 /bin
+/build/CMakeFiles
+/bin/
