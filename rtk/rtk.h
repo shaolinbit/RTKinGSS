@@ -56,6 +56,12 @@ extern "C" {
 #define EXPORT
 #endif
 
+#define ENAGLO
+#define ENAGAL
+#define ENACMP
+#define ENAQZS
+#define ENAIRN
+
     /* constants -----------------------------------------------------------------*/
 
 #define VER_RTKLIB  "demo5"             /* library version */
@@ -84,19 +90,21 @@ extern "C" {
 
 #define FREQL1      1.57542E9           /* L1/E1  frequency (Hz) */
 #define FREQL2      1.22760E9           /* L2     frequency (Hz) */
-#define FREQE5b     1.20714E9           /* E5b    frequency (Hz) */
 #define FREQL5      1.17645E9           /* L5/E5a frequency (Hz) */
 #define FREQE6      1.27875E9           /* E6/LEX frequency (Hz) */
+#define FREQE5b     1.20714E9           /* E5b    frequency (Hz) */
 #define FREQE5ab    1.191795E9          /* E5a+b  frequency (Hz) */
 #define FREQs       2.492028E9           /* S      frequency (Hz) */
-#define FREQ1_CMP   1.561098E9          /* BeiDou B1 frequency (Hz) */
-#define FREQ2_CMP   1.20714E9           /* BeiDou B2 frequency (Hz) */
-#define FREQ3_CMP   1.26852E9           /* BeiDou B3 frequency (Hz) */
 #define FREQ1_GLO   1.60200E9           /* GLONASS G1 base frequency (Hz) */
 #define DFRQ1_GLO   0.56250E6           /* GLONASS G1 bias frequency (Hz/n) */
 #define FREQ2_GLO   1.24600E9           /* GLONASS G2 base frequency (Hz) */
 #define DFRQ2_GLO   0.43750E6           /* GLONASS G2 bias frequency (Hz/n) */
 #define FREQ3_GLO   1.202025E9          /* GLONASS G3 frequency (Hz) */
+//#define FREQ1a_GLO  1.600995E9          /* GLONASS G1a frequency (Hz) */
+//#define FREQ2a_GLO  1.248060E9          /* GLONASS G2a frequency (Hz) */
+#define FREQ1_CMP   1.561098E9          /* BeiDou B1 frequency (Hz) */
+#define FREQ2_CMP   1.20714E9           /* BeiDou B2 frequency (Hz) */
+#define FREQ3_CMP   1.26852E9           /* BeiDou B3 frequency (Hz) */
 
 #define EFACT_GPS   1.0                 /* error factor: GPS */
 #define EFACT_GLO   1.5                 /* error factor: GLONASS */
@@ -178,7 +186,7 @@ extern "C" {
 #endif
 #ifdef ENACMP
 #define MINPRNCMP   1                   /* min satellite sat number of BeiDou */
-#define MAXPRNCMP   37                  /* max satellite sat number of BeiDou */
+#define MAXPRNCMP   63/*37 */                 /* max satellite sat number of BeiDou */
 #define NSATCMP     (MAXPRNCMP-MINPRNCMP+1) /* number of BeiDou satellites */
 #define NSYSCMP     1
 #else
@@ -220,7 +228,7 @@ extern "C" {
 #define MAXSTA      255
 
 #ifndef MAXOBS
-#define MAXOBS      64                  /* max number of obs in an epoch */
+#define MAXOBS      96//64                  /* max number of obs in an epoch */
 #endif
 #define MAXRCV      64                  /* max receiver number (1 to MAXRCV) */
 #define MAXOBSTYPE  64                  /* max number of obs type in RINEX */
@@ -531,7 +539,7 @@ extern "C" {
 #define thread_t    pthread_t
 #define lock_t      pthread_mutex_t
 #define initlock(f) pthread_mutex_init(f,NULL)
-#define lock(f)     pthread_mutex_lock(f)
+#define rtk_lock(f)     pthread_mutex_lock(f)
 //#define unlock(f)   pthread_mutex_unlock(f)
 #define FILEPATHSEP '/'
 #endif
@@ -554,7 +562,7 @@ extern "C" {
         gtime_t time;       /* receiver sampling time (GPST) */
         gtime_t eventime;   /* time of event (GPST) */
         int timevalid;      /* time is valid (Valid GNSS fix) for time mark */
-        unsigned char sat, rcv; /* satellite/receiver number */
+        unsigned char sat, rcv; /* satellite/receiver number ��rcv:1-rover,2-base*/
         unsigned char SNR[NFREQ + NEXOBS]; /* signal strength (0.25 dBHz) */
         unsigned char LLI[NFREQ + NEXOBS]; /* loss of lock indicator */
         unsigned char code[NFREQ + NEXOBS]; /* code indicator (CODE_???) */
@@ -1222,7 +1230,7 @@ extern "C" {
         unsigned char vsat[NFREQ]; /* valid satellite flag */
         unsigned char snr_rover[NFREQ]; /* rover signal strength (0.25 dBHz) */
         unsigned char snr_base[NFREQ]; /* base signal strength (0.25 dBHz) */
-        unsigned char fix[NFREQ]; /* ambiguity fix flag (1:fix,2:float,3:hold) */
+        unsigned char fix[NFREQ]; /* ambiguity fix flag (1:fix,2:float,3:hold)  */
         unsigned char slip[NFREQ]; /* cycle-slip flag */
         unsigned char half[NFREQ]; /* half-cycle valid flag */
         int lock[NFREQ];   /* lock counter of phase */
@@ -1266,21 +1274,22 @@ extern "C" {
         int initial_mode;   /* initial positioning mode */
 		double daytime;
 
-
-		int nn, nu, nr;	/* nn=nu+nr nr ref number，nu rover number*/
-		int ns;/*common satellite number*/
-		int nv;//the dd number
-		int vflg[MAXOBS * NFREQ * 2 + 1];//base satellite、rover satellite、obs type、freq:(sat[i] << 16) | (sat[j] << 8) | ((code ? 1 : 0) << 4) | (frq);
+        //add for GSS test
+		int nn, nu, nr;	/* nn=nu+nr nr:base sat num,nu:rover sat number*/
+		int ns;/*common sat number*/
+		int nv;//double diffrence pseudorange and carrier measurements num
+		int vflg[MAXOBS * NFREQ * 2 + 1];//(sat[i] << 16) | (sat[j] << 8) | ((code ? 1 : 0) << 4) | (frq);
 		int sat[MAXSAT];
-		int ir[MAXSAT], iu[MAXSAT];
-		double dt;//the dt between rover and base
+		int ir[MAXSAT], iu[MAXSAT];//index in obs[]
+		double dt;//time diff between rover and base
+		double* xa_;     /* fixed states and their covariance */
+		double* P_dd_ambiguity=NULL;
+		double* dd_bias=NULL;
 
-		double* xa_;     /* fixed states and their covariance *///, *Pa_
-		double* P_dd_ambiguity=NULL;/*sigle diff ambiguity covariance*/
-		double* dd_bias=NULL;//dd diff
+		double* P_dd_ambiguity_f = NULL;
+		double* dd_bias_f = NULL;
 
-		double* P_dd_ambiguity_f = NULL;/*single diff ambiguity covariance*/
-		double* dd_bias_f = NULL;//dd diff ambiguity
+		int sat_index[MAXOBS * NFREQ * 2 + 1][4];
     } rtk_t;
 
 	typedef struct rtk_check {
@@ -1288,6 +1297,7 @@ extern "C" {
 		double x[9 + MAXSAT * 2];
 		int stat;
 		int kf_stat;
+		//int insfixrtkcount;
 	}rtk_check;
 	typedef struct biaskey {
 		int ref_sat;
@@ -1303,41 +1313,30 @@ extern "C" {
 	typedef struct sat_prn_ferq
 	{
 		int sat_prn_of_x;//prn
-		int ferq;//frequency
+		int ferq;
 	};
+#define frc_dimX 9
 	typedef struct fr_check {
 
 
-		//时间
 		gtime_t time;       /* time (GPST) */
 		gtime_t eventime;   /* time of event (GPST) */
-		double dt;//
-		int epoch_num;//
+		double dt;//time diff between rover and base
+		int epoch_num;//epoch count
 
+		int x_pva_num = frc_dimX;//state dim 3:pos, 6:[pos vel],9:[pos vel acc]
+		double xf[9];//xf[9 + MAXSAT * 2]
+		double Pf[9*9];//
 
-		double xf[9 + MAXSAT * 2];//[rover position，single ambiguity bias]
-		double Pf[3*3];//
-		double vv[3];
-		double P_bias[MAXSAT * 2];// covariance of single diff
-
-		double rb[6];       /* base position/velocity (ecef) (m|m/s) */
-
-
-
-		int sat[MAXSAT];//satellite prn
 		ssat_t ssat[MAXSAT]; /* satellite status */
 
-		int nn, nu, nr,nv; /* nn=nu+nr nr ref satellite number，nu rover satellite number*/
-		int sat_ns;//the number of common satellites
-		int num_sat_pair;//the number of dd ambiguity bias
-		int vflg[MAXOBS * NFREQ * 2 + 1];//base satellite、rover satellite、obs type(carrier wave 0，pseudo range 1)、频率(sat[i] << 16) | (sat[j] << 8) | ((code ? 1 : 0) << 4) | (frq)
+		int nn, nu, nr,nv; /* nn=nu+nr nr:base sat num,nu:rover sat number*/
+		int sat_ns;//common sat num
+		int num_sat_pair;//dd ambiguity num
 		int bias_index[MAXOBS * NFREQ * 2 + 1];//Double difference ambiguity index of vector double_diff_pair and double_diff_pair_times
-		int stat;//SOLQ_NONE-0 no result，SOLQ_FIX-1 fix solution、SOLQ_FLOAT-2 float solution
+		int stat;//SOLQ_NONE-0��SOLQ_FIX-1��SOLQ_FLOAT-2
 
-		int iu[MAXSAT], ir[MAXSAT];//index of satellite in the obs
 		obsd_t obs[MAXOBS * 2]; /* for rover and base */
-
-		double dd_bias[MAXOBS * NFREQ * 2 + 1];
 
 	}fr_check;
 
@@ -1353,7 +1352,7 @@ extern "C" {
 		int slipcount;
 		gtime_t t_start;
 		gtime_t t_end;
-		double q;
+		double q;//variance
 		int num;//continuous epoch
 
 	};
@@ -1684,7 +1683,7 @@ extern "C" {
         const double* azel);
     EXPORT double ionmapf(const double* pos, const double* azel);
     EXPORT double ionppp(const double* pos, const double* azel, double re,
-        double hion, double* posp);
+        double hion, double* pppos);
     EXPORT double tropmodel(gtime_t time, const double* pos, const double* azel,
         double humi);
     EXPORT double tropmapf(gtime_t time, const double* pos, const double* azel,
@@ -1763,7 +1762,7 @@ extern "C" {
         const nav_t* nav, double* rs, double* dts, double* var,
         int* svh);
     EXPORT void satposs(gtime_t time, const obsd_t* obs, int n, const nav_t* nav,
-        int ephopt, double* rs, double* dts, double* var, int* svh);
+        int sateph, double* rs, double* dts, double* var, int* svh);
     EXPORT void satseleph(int sys, int sel);
     EXPORT void readsp3(const char* file, nav_t* nav, int opt);
     EXPORT int  readsap(const char* file, gtime_t time, nav_t* nav);
@@ -1885,14 +1884,14 @@ extern "C" {
     EXPORT int  rtkoutstat(rtk_t* rtk, char* buff);
 
     /* precise point positioning -------------------------------------------------*/
-    //EXPORT void pppos(rtk_t* rtk, const obsd_t* obs, int n, const nav_t* nav);
+    EXPORT void pppos(rtk_t* rtk, const obsd_t* obs, int n, const nav_t* nav);
     EXPORT int pppnx(const prcopt_t* opt);
     EXPORT int pppoutstat(rtk_t* rtk, char* buff);
 
     EXPORT int ppp_ar(rtk_t* rtk, const obsd_t* obs, int n, int* exc,
         const nav_t* nav, const double* azel, double* x, double* P);
 
-    //EXPORT int pppcorr_read(pppcorr_t* corr, const char* file);
+    EXPORT int pppcorr_read(pppcorr_t* corr, const char* file);
     EXPORT void pppcorr_free(pppcorr_t* corr);
     EXPORT int pppcorr_trop(const pppcorr_t* corr, gtime_t time, const double* pos,
         double* ztd, double* std);
@@ -1946,29 +1945,26 @@ extern "C" {
 
 
 
-	/*add by yansudan( need to further modification )-----------------------------*/
-	//int dd_ambiguity(rtk_t* rtk);
-	//static int test_ddmat(rtk_t *rtk, double *D);
+	/*add for GSS( need to further modification )-----------------------------*/
 	int zdres_(int base, const obsd_t* obs, int n, const double* rs,
 		const double* dts, const double* var, const int* svh,
 		const nav_t* nav, const double* rr, const prcopt_t* opt,
 		int index, double* y, double* e, double* azel);
 
-
-	int ddres_(fr_check* frc,const prcopt_t* opt, const nav_t *nav, double *y,
-		double *e, double *azel, double *v, double *H, double *R, int *vflg,
-		int *ref_sat_index,double *RR);
-
-	int test_lamda(const prcopt_t* popt, vector<ambi_infor*> sd_ambi_, double *Q_sd);
-
-	int test_lamda_dd(const prcopt_t* popt, vector<ambi_infor*> sd_ambi_, double *Q_dd);
-
-	int LD_(int n, const double* Q, double* L, double* D);
+	double varerr_(const prcopt_t* opt, double el, double snr_rover, int sys);
 
 
+
+
+	//doppler mesurement residual
+	int resdop_mulfreq(const obsd_t *obs, const int n, const double *rs, const double *dts, const int* svh, double *var,
+		const nav_t *nav, const double *rr, const prcopt_t *opt, const double *x, const ssat_t* ssat
+		, double *v, double *var_dop, double *H, int nv, int nx);
+
+	//try to repair cycle slip
 	void detslp_mw_(rtk_t* rtk, const obsd_t* obs, int n, const nav_t* nav);
 	void detslp_gf_(rtk_t* rtk, const obsd_t* obs, int n, const nav_t* nav);
-
+	//int repair_slp_mw_gf(rtk_t* rtk, const obsd_t* obs, const nav_t* nav,int prn);
 #ifdef __cplusplus
 }
 #endif

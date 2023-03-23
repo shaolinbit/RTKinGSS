@@ -80,7 +80,8 @@ static int readsp3h(FILE* fp, gtime_t* time, char* type, int* sats,
         }
         else if (2 <= i && i <= 6) {
             if (i == 2) {
-                ns = (int)str2num(buff, 4, 2);
+                //ns = (int)str2num(buff, 4, 2);
+				ns = (int)str2num(buff, 3, 3);
             }
             for (j = 0; j < 17 && k < ns; j++) {
                 sys = code2sys(buff[9 + 3 * j]);

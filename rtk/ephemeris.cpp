@@ -236,7 +236,8 @@ extern void eph2pos(gtime_t time, const eph_t* eph, double* rs, double* dts,
     x = r * cos(u); y = r * sin(u); cosi = cos(i);
 
     /* beidou geo satellite */
-    if (sys == SYS_CMP && (eph->flag == 2 || (eph->flag == 0 && prn <= 5))) {
+    //if (sys == SYS_CMP && (eph->flag == 2 || (eph->flag == 0 && prn <= 5))) {
+	if (sys == SYS_CMP && (eph->flag == 2 || (eph->flag == 0 && (prn <= 5 || prn >= 59)))) {
         O = eph->OMG0 + eph->OMGd * tk - omge * eph->toes;
         sinO = sin(O); cosO = cos(O);
         xg = x * cosO - y * cosi * sinO;
@@ -707,9 +708,7 @@ extern int satpos(gtime_t time, gtime_t teph, int sat, int ephopt,
     case EPHOPT_LEX:
         if (!lexeph2pos(time, sat, nav, rs, dts, var)) break; else return 1;
     }
-
     *svh = -1;
-
     return 0;
 }
 /* satellite positions and clocks ----------------------------------------------

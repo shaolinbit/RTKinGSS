@@ -716,6 +716,10 @@ static int decode_obsdata(FILE* fp, char* buff, double ver, int mask,
 
     if (ver > 2.99) { /* ver.3 */
         strncpy(satid, buff, 3);
+		if (satid[0] == 'C')
+		{
+			double bb = 0;
+		}
         obs->sat = (unsigned char)satid2no(satid);
     }
     if (!obs->sat) {
@@ -756,46 +760,49 @@ static int decode_obsdata(FILE* fp, char* buff, double ver, int mask,
     for (i = n = m = 0; i < ind->n; i++) {
 
         p[i] = ind->frq[i] - 1;
-
+		//p[i] = (ver <= 2.11) ? ind->frq[i] - 1 : ind->pos[i];
         if (ind->type[i] == 0 && p[i] == 0) k[n++] = i; /* C1? index */
         if (ind->type[i] == 0 && p[i] == 1) l[m++] = i; /* C2? index */
     }
 
-    /* if multiple codes (C1/P1,C2/P2), select higher priority */
-    if (n >= 2) {
-        if (val[k[0]] == 0.0 && val[k[1]] == 0.0) {
-            p[k[0]] = -1; p[k[1]] = -1;
-        }
-        else if (val[k[0]] != 0.0 && val[k[1]] == 0.0) {
-            p[k[0]] = 0; p[k[1]] = -1;
-        }
-        else if (val[k[0]] == 0.0 && val[k[1]] != 0.0) {
-            p[k[0]] = -1; p[k[1]] = 0;
-        }
-        else if (ind->pri[k[1]] > ind->pri[k[0]]) {
-            p[k[1]] = 0; p[k[0]] = NEXOBS < 1 ? -1 : NFREQ;
-        }
-        else {
-            p[k[0]] = 0; p[k[1]] = NEXOBS < 1 ? -1 : NFREQ;
-        }
-    }
-    if (m >= 2) {
-        if (val[l[0]] == 0.0 && val[l[1]] == 0.0) {
-            p[l[0]] = -1; p[l[1]] = -1;
-        }
-        else if (val[l[0]] != 0.0 && val[l[1]] == 0.0) {
-            p[l[0]] = 1; p[l[1]] = -1;
-        }
-        else if (val[l[0]] == 0.0 && val[l[1]] != 0.0) {
-            p[l[0]] = -1; p[l[1]] = 1;
-        }
-        else if (ind->pri[l[1]] > ind->pri[l[0]]) {
-            p[l[1]] = 1; p[l[0]] = NEXOBS < 2 ? -1 : NFREQ + 1;
-        }
-        else {
-            p[l[0]] = 1; p[l[1]] = NEXOBS < 2 ? -1 : NFREQ + 1;
-        }
-    }
+	//if (ver <= 2.11)
+	{
+		/* if multiple codes (C1/P1,C2/P2), select higher priority */
+		if (n >= 2) {
+			if (val[k[0]] == 0.0 && val[k[1]] == 0.0) {
+				p[k[0]] = -1; p[k[1]] = -1;
+			}
+			else if (val[k[0]] != 0.0 && val[k[1]] == 0.0) {
+				p[k[0]] = 0; p[k[1]] = -1;
+			}
+			else if (val[k[0]] == 0.0 && val[k[1]] != 0.0) {
+				p[k[0]] = -1; p[k[1]] = 0;
+			}
+			else if (ind->pri[k[1]] > ind->pri[k[0]]) {
+				p[k[1]] = 0; p[k[0]] = NEXOBS < 1 ? -1 : NFREQ;
+			}
+			else {
+				p[k[0]] = 0; p[k[1]] = NEXOBS < 1 ? -1 : NFREQ;
+			}
+		}
+		if (m >= 2) {
+			if (val[l[0]] == 0.0 && val[l[1]] == 0.0) {
+				p[l[0]] = -1; p[l[1]] = -1;
+			}
+			else if (val[l[0]] != 0.0 && val[l[1]] == 0.0) {
+				p[l[0]] = 1; p[l[1]] = -1;
+			}
+			else if (val[l[0]] == 0.0 && val[l[1]] != 0.0) {
+				p[l[0]] = -1; p[l[1]] = 1;
+			}
+			else if (ind->pri[l[1]] > ind->pri[l[0]]) {
+				p[l[1]] = 1; p[l[0]] = NEXOBS < 2 ? -1 : NFREQ + 1;
+			}
+			else {
+				p[l[0]] = 1; p[l[1]] = NEXOBS < 2 ? -1 : NFREQ + 1;
+			}
+		}
+	}
     /* save obs data */
     for (i = 0; i < ind->n; i++) {
         if (p[i] < 0 || (val[i] == 0.0 && lli[i] == 0)) continue;
@@ -1724,7 +1731,6 @@ extern int init_rnxctr(rnxctr_t* rnx)
         free_rnxctr(rnx);
         return 0;
     }
-
     rnx->time = time0;
     rnx->ver = 0.0;
     rnx->sys = rnx->tsys = 0;
@@ -2153,13 +2159,14 @@ extern int outrnxobsb(FILE* fp, const rnxopt_t* opt, const obsd_t* obs, int n,
         ind[ns++] = i;
     }
 
-
+    /* if epoch of event less than epoch of observation, then first output
+    time mark, else first output observation record */
     epdiff = timediff(obs[0].time, obs[0].eventime);
     if (flag == 5 && epdiff >= 0) {
         outrinexevent(fp, opt, obs, epdiff);
     }
 
-    if (opt->rnxver <= 2.99) {
+    if (opt->rnxver <= 2.99) { /* ver.2 */
         fprintf(fp, " %02d %2.0f %2.0f %2.0f %2.0f%11.7f  %d%3d",
             (int)ep[0] % 100, ep[1], ep[2], ep[3], ep[4], ep[5], 0, ns);
         for (i = 0; i < ns; i++) {
@@ -2167,35 +2174,34 @@ extern int outrnxobsb(FILE* fp, const rnxopt_t* opt, const obsd_t* obs, int n,
             fprintf(fp, "%-3s", sats[i]);
         }
     }
-    else {
+    else { /* ver.3 */
         fprintf(fp, "> %04.0f %2.0f %2.0f %2.0f %2.0f%11.7f  %d%3d%21s\n",
             ep[0], ep[1], ep[2], ep[3], ep[4], ep[5], 0, ns, "");
     }
-
     for (i = 0; i < ns; i++) {
         sys = satsys(obs[ind[i]].sat, NULL);
 
-        if (opt->rnxver <= 2.99) {
+        if (opt->rnxver <= 2.99) { /* ver.2 */
             m = 0;
             mask = opt->mask[s[i]];
         }
-        else {
+        else { /* ver.3 */
             fprintf(fp, "%-3s", sats[i]);
             m = s[i];
             mask = opt->mask[s[i]];
         }
         for (j = 0; j < opt->nobs[m]; j++) {
 
-            if (opt->rnxver <= 2.99) {
+            if (opt->rnxver <= 2.99) { /* ver.2 */
                 if (j % 5 == 0) fprintf(fp, "\n");
             }
-
+            /* search obs data index */
             if ((k = obsindex(opt->rnxver, sys, obs[ind[i]].code, opt->tobs[m][j],
                 mask)) < 0) {
                 outrnxobsf(fp, 0.0, -1, -1);
                 continue;
             }
-
+            /* output field */
             switch (opt->tobs[m][j][0]) {
             case 'C':
             case 'P': outrnxobsf(fp, obs[ind[i]].P[k], -1, obs[ind[i]].qualP[k]); break;
@@ -2205,6 +2211,7 @@ extern int outrnxobsb(FILE* fp, const rnxopt_t* opt, const obsd_t* obs, int n,
             }
         }
 
+        /* set trace level to 1 generate CSV file of raw observations   */
         /*
         if (gettracelevel() == 1) {
             trace(1, ",%16.2f,%3d,%13.2f,%13.2f,%9.2f,%2.0f,%1d,%1d,%13.2f,%13.2f,%9.2f,%2.0f,%1d,%1d\n",
@@ -2226,7 +2233,6 @@ extern int outrnxobsb(FILE* fp, const rnxopt_t* opt, const obsd_t* obs, int n,
 
     return fprintf(fp, "\n") != EOF;
 }
-
 /* output nav member by rinex nav format -------------------------------------*/
 static void outnavf(FILE* fp, double value)
 {
@@ -2771,5 +2777,3 @@ extern int outrnxinavh(FILE* fp, const rnxopt_t* opt, const nav_t* nav)
     }
     return fprintf(fp, "%60s%-20s\n", "", "END OF HEADER") != EOF;
 }
-
-

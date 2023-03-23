@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(Rtk_gtsam)
+project(Rtkpost_gtsam)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
@@ -52,7 +52,6 @@ include_directories(${GTSAM_INCLUDE_DIR})
 include_directories(
 ${PROJECT_SOURCE_DIR})
 
-add_executable(Rtk_gtsam ${PROJECT_SOURCE_DIR}/main.cpp ${PROJECT_SOURCE_DIR}/global.cpp ${PROJECT_SOURCE_DIR}/RTK_Optimizer.cpp ${SRC_LIST_rtk} ${PROJECT_SOURCE_DIR}/Rtkpost.cpp)
+add_executable(Rtkpost_gtsam ${PROJECT_SOURCE_DIR}/src/main.cpp ${PROJECT_SOURCE_DIR}/src/global.cpp ${PROJECT_SOURCE_DIR}/src/RTK_Optimizer.cpp ${SRC_LIST_rtk} ${PROJECT_SOURCE_DIR}/src/Rtkpost_ndlg.cpp ${PROJECT_SOURCE_DIR}/src/tides.cpp ${PROJECT_SOURCE_DIR}/src/CPublic.cpp ${PROJECT_SOURCE_DIR}/src/ppp_corr.cpp ${PROJECT_SOURCE_DIR}/src/minmea.c ${PROJECT_SOURCE_DIR}/src/DataConvertion.cpp)
 
-target_link_libraries(Rtk_gtsam ${Boost_LIBRARIES} gtsam)
-
+target_link_libraries(Rtkpost_gtsam ${Boost_LIBRARIES} gtsam)

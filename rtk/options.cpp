@@ -435,10 +435,10 @@ static void buff2sysopts(void)
         }
     }
     /* number of frequency (4:L1+L5) */
-    /*if (prcopt_.nf==4) {
+    if (prcopt_.nf==4) {
         prcopt_.nf=3;
         prcopt_.freqopt=1;
-    }*/
+    }/**/
 }
 /* options to system options buffer ------------------------------------------*/
 static void sysopts2buff(void)

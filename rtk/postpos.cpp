@@ -179,9 +179,12 @@ static void outheader(FILE* fp, char** file, int n, const prcopt_t* popt,
 extern int nextobsf(const obs_t* obs, int* i, int rcv)
 {
     double tt;
-    int n;
+    int n=0;
 
-    for (; *i < obs->n; (*i)++) if (obs->data[*i].rcv == rcv) break;
+    for (; *i < obs->n; (*i)++) {
+            if (obs->data[*i].rcv == rcv)
+            break;
+    }
     for (n = 0; *i + n < obs->n; n++) {
         tt = timediff(obs->data[*i + n].time, obs->data[*i].time);
         if (obs->data[*i + n].rcv != rcv || tt > DTTOL) break;
@@ -453,7 +456,7 @@ extern void readpreceph(char** infile, int n, const prcopt_t* prcopt,
             (!strcmp(ext, ".stat") || !strcmp(ext, ".STAT") ||
                 !strcmp(ext, ".stec") || !strcmp(ext, ".STEC") ||
                 !strcmp(ext, ".trp") || !strcmp(ext, ".TRP"))) {
-            //pppcorr_read(&nav->pppcorr, infile[i]);
+            pppcorr_read(&nav->pppcorr, infile[i]);
         }
     }
     /* read sbas message files */

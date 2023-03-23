@@ -266,10 +266,3 @@ extern int lambda_search(int n, int m, const double* a, const double* Q,
     return info;
 }
 
-/* add by yansudan
-	to use LD out lambda.cpp
-*/
-int LD_(int n, const double* Q, double* L, double* D)
-{
-	return LD(n, Q, L, D);
-}

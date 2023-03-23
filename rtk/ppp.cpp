@@ -121,7 +121,6 @@ static double STD(rtk_t* rtk, int i)
     if (rtk->sol.stat == SOLQ_FIX) return SQRT(rtk->Pa[i + i * rtk->nx]);
     return SQRT(rtk->P[i + i * rtk->nx]);
 }
-
 /* write solution status for PPP ---------------------------------------------*/
 extern int pppoutstat(rtk_t* rtk, char* buff)
 {
@@ -1182,8 +1181,102 @@ static int test_hold_amb(rtk_t* rtk)
     /* test # of continuous fixed */
     return ++rtk->nfix >= rtk->opt.minfix;
 }
+/* precise point positioning -------------------------------------------------*/
+extern void pppos(rtk_t* rtk, const obsd_t* obs, int n, const nav_t* nav)
+{
+    const prcopt_t* opt = &rtk->opt;
+    double* rs, * dts, * var, * v, * H, * R, * azel, * xp, * Pp, dr[3] = { 0 }, std[3];
+    char str[32];
+    int i, j, nv, info, svh[MAXOBS], exc[MAXOBS] = { 0 }, stat = SOLQ_SINGLE;
 
-/*********add by yan*****************************************************/
+    time2str(obs[0].time, str, 2);
+    trace(3, "pppos   : time=%s nx=%d n=%d\n", str, rtk->nx, n);
+
+    rs = mat(6, n); dts = mat(2, n); var = mat(1, n); azel = rtklib_zeros(2, n);
+
+    for (i = 0; i < MAXOBS; i++) for (j = 0; j < opt->nf; j++) {
+        rtk->ssat[i].fix[j] = 0;
+        rtk->ssat[obs[i].sat - 1].snr_rover[j] = obs[i].SNR[j];
+        rtk->ssat[obs[i].sat - 1].snr_base[j] = 0;
+    }
+
+    /* temporal update of ekf states */
+    udstate_ppp(rtk, obs, n, nav);
+
+    /* satellite positions and clocks */
+    satposs(obs[0].time, obs, n, nav, rtk->opt.sateph, rs, dts, var, svh);
+
+    /* exclude measurements of eclipsing satellite (block IIA) */
+    if (rtk->opt.posopt[3]) {
+        testeclipse(obs, n, nav, rs);
+    }
+    /* earth tides correction */
+    if (opt->tidecorr) {
+        tidedisp(gpst2utc(obs[0].time), rtk->x, opt->tidecorr == 1 ? 1 : 7, &nav->erp,
+            opt->odisp[0], dr);
+    }
+    nv = n * rtk->opt.nf * 2 + MAXSAT + 3;
+    xp = mat(rtk->nx, 1); Pp = rtklib_zeros(rtk->nx, rtk->nx);
+    v = mat(nv, 1); H = mat(rtk->nx, nv); R = mat(nv, nv);
+
+    for (i = 0; i < MAX_ITER; i++) {
+
+        matcpy(xp, rtk->x, rtk->nx, 1);
+        matcpy(Pp, rtk->P, rtk->nx, rtk->nx);
+
+        /* prefit residuals */
+        if (!(nv = ppp_res(0, obs, n, rs, dts, var, svh, dr, exc, nav, xp, rtk, v, H, R, azel))) {
+            trace(2, "%s ppp (%d) no valid obs data\n", str, i + 1);
+            break;
+        }
+        /* measurement update of ekf states */
+        if ((info = filter(xp, Pp, H, v, R, rtk->nx, nv))) {
+            trace(2, "%s ppp (%d) filter error info=%d\n", str, i + 1, info);
+            break;
+        }
+        /* postfit residuals */
+        if (ppp_res(i + 1, obs, n, rs, dts, var, svh, dr, exc, nav, xp, rtk, v, H, R, azel)) {
+            matcpy(rtk->x, xp, rtk->nx, 1);
+            matcpy(rtk->P, Pp, rtk->nx, rtk->nx);
+            stat = SOLQ_PPP;
+            break;
+        }
+    }
+    if (i >= MAX_ITER) {
+        trace(2, "%s ppp (%d) iteration overflows\n", str, i);
+    }
+    if (stat == SOLQ_PPP) {
+
+        /* ambiguity resolution in ppp */
+        if (ppp_ar(rtk, obs, n, exc, nav, azel, xp, Pp) &&
+            ppp_res(9, obs, n, rs, dts, var, svh, dr, exc, nav, xp, rtk, v, H, R, azel)) {
+
+            matcpy(rtk->xa, xp, rtk->nx, 1);
+            matcpy(rtk->Pa, Pp, rtk->nx, rtk->nx);
+
+            for (i = 0; i < 3; i++) std[i] = sqrt(Pp[i + i * rtk->nx]);
+            if (norm(std, 3) < MAX_STD_FIX) stat = SOLQ_FIX;
+        }
+        else {
+            rtk->nfix = 0;
+        }
+        /* update solution status */
+        update_stat(rtk, obs, n, stat);
+
+        /* hold fixed ambiguities */
+        if (stat == SOLQ_FIX && test_hold_amb(rtk)) {
+            matcpy(rtk->x, xp, rtk->nx, 1);
+            matcpy(rtk->P, Pp, rtk->nx, rtk->nx);
+            trace(2, "%s hold ambiguity\n", str);
+            rtk->nfix = 0;
+        }
+    }
+    free(rs); free(dts); free(var); free(azel);
+    free(xp); free(Pp); free(v); free(H); free(R);
+}
+
+
+/*********add  for GSS test*****************************************************/
 void detslp_mw_(rtk_t* rtk, const obsd_t* obs, int n, const nav_t* nav)
 {
 	detslp_mw(rtk, obs, n, nav);
@@ -1195,5 +1288,73 @@ void detslp_gf_(rtk_t* rtk, const obsd_t* obs, int n, const nav_t* nav)
 }
 
 //extern vector<fr_check*> fr_c;
-
-
+//int repair_slp_mw_gf(rtk_t* rtk, const obsd_t* obs, const nav_t* nav,int prn)
+//{
+//	//double CLIGHT / FREQL1
+//	int i = 1;//目前只有L1 L2，有别的另加
+//	/* -------------- GF -------------*/
+//	const double* lam = nav->lam[obs->sat - 1];
+//	//int i = (satsys(obs->sat, NULL) & (SYS_GAL | SYS_SBS)) ? 2 : 1;
+//
+//	if (lam[0] == 0.0 || lam[i] == 0.0 || obs->L[0] == 0.0 || obs->L[i] == 0.0)
+//		return 0;
+//
+//	double gf= lam[0] * obs->L[0] - lam[i] * obs->L[i];
+//
+//	/* -------------- MW -------------*/
+//	//const double* lam = nav->lam[obs->sat - 1];
+//	//int i = (satsys(obs->sat, NULL) & (SYS_GAL | SYS_SBS)) ? 2 : 1;
+//
+//	if (lam[0] == 0.0 || lam[i] == 0.0 || obs->L[0] == 0.0 || obs->L[i] == 0.0 ||
+//		obs->P[0] == 0.0 || obs->P[i] == 0.0)
+//		return 0;
+//
+//	double lam_mw_L12 = CLIGHT / (FREQL1 - FREQL2);
+//
+//	double mw=(obs->L[0] - obs->L[i]) -
+//		(FREQL1 * obs->P[0] + FREQL2 * obs->P[i]) / ((FREQL1 + FREQL2)*lam_mw_L12);
+//
+//	/* 组合修复周跳*/
+//	double d_bias_mw, d_bias_gf;//要与上一个历元相减，还要存上一个历元的结果
+//	double gf0, mw0;
+//	fr_check *fr_c_0 = fr_c.at(fr_c.size() - 1);
+//
+//	//上一个历元的gf、MW组合观测值
+//	int iu_index = 0, repiar_flag = 0;
+//	for (iu_index = 0; iu_index < MAXSAT; iu_index++)
+//	{
+//		if (fr_c_0->sat[iu_index] == prn)
+//			break;
+//	}
+//	if (iu_index >= MAXSAT)
+//		return 0;
+//	int obs_index = fr_c_0->iu[iu_index];
+//
+//	if (lam[0] == 0.0 || lam[i] == 0.0 || fr_c_0->obs[obs_index].L[0] == 0.0 || fr_c_0->obs[obs_index].L[i] == 0.0)
+//		return 0;
+//
+//	gf0 = lam[0] * fr_c_0->obs[obs_index].L[0] - lam[i] * fr_c_0->obs[obs_index].L[i];
+//
+//	/* -------------- MW -------------*/
+//	//const double* lam = nav->lam[obs->sat - 1];
+//	//int i = (satsys(obs->sat, NULL) & (SYS_GAL | SYS_SBS)) ? 2 : 1;
+//
+//	if (lam[0] == 0.0 || lam[i] == 0.0 || fr_c_0->obs[obs_index].L[0] == 0.0 || fr_c_0->obs[obs_index].L[i] == 0.0 ||
+//		fr_c_0->obs[obs_index].P[0] == 0.0 || fr_c_0->obs[obs_index].P[i] == 0.0)
+//		return 0;
+//
+//	//double lam_mw_L12 = CLIGHT / (FREQL1 - FREQL2);
+//
+//	mw0 = (fr_c_0->obs[obs_index].L[0] - fr_c_0->obs[obs_index].L[i]) -
+//		(FREQL1 * fr_c_0->obs[obs_index].P[0] + FREQL2 * fr_c_0->obs[obs_index].P[i]) / ((FREQL1 + FREQL2)*lam_mw_L12);
+//
+//	d_bias_mw = mw - mw0;
+//	d_bias_gf = gf - gf0;
+//	if (fabs(d_bias_mw) < 0.9&&fabs(d_bias_gf) < rtk->opt.thresslip)
+//		return 2;
+//	double slip_L1, slip_L2;
+//	slip_L1 = (d_bias_gf - lam[i] * d_bias_mw) / (lam[0] - lam[i]);
+//	slip_L2 = slip_L1 - d_bias_mw;
+//
+//	return 1;
+//}

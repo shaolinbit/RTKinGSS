@@ -308,45 +308,44 @@ static int decode_lextype12(const lexmsg_t* msg, nav_t* nav, gtime_t* tof)
         rtcm.ssr[k].update = 0;
     }
     /* convert lex type 12 to rtcm ssr message */
-
     while ((n = lex2rtcm(msg->msg, i, buff))) {
 
         rtcm.time = *tof;
 
         for (j = 0; j < n + 6; j++) {
 
-
+            /* input rtcm ssr message */
             if (input_rtcm3(&rtcm, buff[j]) == -1) continue;
 
-
+            /* update ssr corrections in nav data */
             for (k = 0; k < MAXSAT; k++) {
                 if (!rtcm.ssr[k].update) continue;
 
                 rtcm.ssr[k].update = 0;
 
-                if (rtcm.ssr[k].t0[3].time) {
+                if (rtcm.ssr[k].t0[3].time) {      /* ura */
                     stock_rtcm.ssr[k].t0[3] = rtcm.ssr[k].t0[3];
                     stock_rtcm.ssr[k].udi[3] = rtcm.ssr[k].udi[3];
                     stock_rtcm.ssr[k].iod[3] = rtcm.ssr[k].iod[3];
                     stock_rtcm.ssr[k].ura = rtcm.ssr[k].ura;
                 }
-                if (rtcm.ssr[k].t0[2].time) {
+                if (rtcm.ssr[k].t0[2].time) {      /* hr-clock correction*/
 
-
+                    /* convert hr-clock correction to clock correction*/
                     stock_rtcm.ssr[k].t0[1] = rtcm.ssr[k].t0[2];
                     stock_rtcm.ssr[k].udi[1] = rtcm.ssr[k].udi[2];
                     stock_rtcm.ssr[k].iod[1] = rtcm.ssr[k].iod[2];
                     stock_rtcm.ssr[k].dclk[0] = rtcm.ssr[k].hrclk;
                     stock_rtcm.ssr[k].dclk[1] = stock_rtcm.ssr[k].dclk[2] = 0.0;
 
-
+                    /* activate orbit correction(60.0s is tentative) */
                     if ((stock_rtcm.ssr[k].iod[0] == rtcm.ssr[k].iod[2]) &&
                         (timediff(stock_rtcm.ssr[k].t0[0], rtcm.ssr[k].t0[2]) < 60.0)) {
                         rtcm.ssr[k] = stock_rtcm.ssr[k];
                     }
-                    else continue;
+                    else continue; /* not apply */
                 }
-                else if (rtcm.ssr[k].t0[0].time) {
+                else if (rtcm.ssr[k].t0[0].time) { /* orbit correction*/
                     stock_rtcm.ssr[k].t0[0] = rtcm.ssr[k].t0[0];
                     stock_rtcm.ssr[k].udi[0] = rtcm.ssr[k].udi[0];
                     stock_rtcm.ssr[k].iod[0] = rtcm.ssr[k].iod[0];
@@ -357,18 +356,19 @@ static int decode_lextype12(const lexmsg_t* msg, nav_t* nav, gtime_t* tof)
                     stock_rtcm.ssr[k].iode = rtcm.ssr[k].iode;
                     stock_rtcm.ssr[k].refd = rtcm.ssr[k].refd;
 
+                    /* activate clock correction(60.0s is tentative) */
                     if ((stock_rtcm.ssr[k].iod[1] == rtcm.ssr[k].iod[0]) &&
                         (timediff(stock_rtcm.ssr[k].t0[1], rtcm.ssr[k].t0[0]) < 60.0)) {
                         rtcm.ssr[k] = stock_rtcm.ssr[k];
                     }
-                    else continue;
+                    else continue; /* not apply */
                 }
+                /* apply */
                 nav->ssr[k] = rtcm.ssr[k];
             }
         }
         i += n * 8;
     }
-
     return 1;
 }
 /* decode type 20: gsi experiment message (ref [1] 5.7.2.2.2) ----------------*/
@@ -671,4 +671,3 @@ extern int lexioncorr(gtime_t time, const nav_t* nav, const double* pos,
 
     return 1;
 }
-

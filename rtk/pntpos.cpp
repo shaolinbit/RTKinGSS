@@ -310,7 +310,7 @@ static int valsol(const double* azel, const int* vsat, int n,
     vv = dot(v, v, nv);
     if (nv > nx && vv > chisqr[nv - nx - 1]) {
         sprintf(msg, "Warning: large chi-square error nv=%d vv=%.1f cs=%.1f", nv, vv, chisqr[nv - nx - 1]);
-        /* return 0; */ /* threshold too strict for all use cases, report error but continue on */
+        return 0; /* */ /* threshold too strict for all use cases, report error but continue on */
     }
     /* large gdop check */
     for (i = ns = 0; i < n; i++) {
@@ -337,13 +337,16 @@ extern int estpos(const obsd_t* obs, int n, const double* rs, const double* dts,
 
     trace(3, "estpos  : n=%d\n", n);
 
+	double timed;
+	timed = get_daytime(sol->time);
+
     v = mat(n + 4, 1); H = mat(NX, n + 4); var = mat(n + 4, 1);
 
     for (i = 0; i < 3; i++) x[i] = sol->rr[i];
 
     for (i = 0; i < MAXITR; i++) {
 
-
+        /* pseudorange residuals */
         nv = rescode(i, obs, n, rs, dts, vare, svh, nav, x, opt, ssat, v, H, var, azel, vsat, resp,
             &ns);
 
@@ -351,13 +354,13 @@ extern int estpos(const obsd_t* obs, int n, const double* rs, const double* dts,
             sprintf(msg, "lack of valid sats ns=%d", nv);
             break;
         }
-
+        /* weight by variance */
         for (j = 0; j < nv; j++) {
             sig = sqrt(var[j]);
             v[j] /= sig;
             for (k = 0; k < NX; k++) H[k + j * NX] /= sig;
         }
-
+        /* least square estimation */
         if ((info = lsq(H, v, NX, nv, dx, Q))) {
             sprintf(msg, "lsq error info=%d", info);
             break;
@@ -379,7 +382,7 @@ extern int estpos(const obsd_t* obs, int n, const double* rs, const double* dts,
             sol->ns = (unsigned char)ns;
             sol->age = sol->ratio = 0.0;
 
-
+            /* validate solution */
             if ((stat = valsol(azel, vsat, n, opt, v, nv, NX, msg))) {
                 sol->stat = opt->sateph == EPHOPT_SBAS ? SOLQ_SBAS : SOLQ_SINGLE;
             }
@@ -402,7 +405,7 @@ extern int raim_fde(const obsd_t* obs, int n, const double* rs,
 {
     obsd_t* obs_e;
     sol_t sol_e = { {0} };
-    char tstr[32], name[16], msg_e[128];
+    char tstr[32], name[16], msg_e[128] = {0};
     double* rs_e, * dts_e, * vare_e, * azel_e, * resp_e, rms_e, rms = 100.0;
     int i, j, k, nvsat, stat = 0, * svh_e, * vsat_e, sat = 0;
 
@@ -459,6 +462,7 @@ extern int raim_fde(const obsd_t* obs, int n, const double* rs,
         rms = rms_e;
         vsat[i] = 0;
         strcpy(msg, msg_e);
+
     }
     if (stat) {
         time2str(obs[0].time, tstr, 2); satno2id(sat, name);
@@ -493,7 +497,7 @@ static int resdop(const obsd_t* obs, int n, const double* rs, const double* dts,
         a[0] = sin(azel[i * 2]) * cosel;
         a[1] = cos(azel[i * 2]) * cosel;
         a[2] = sin(azel[1 + i * 2]);
-        matmul("TN", 3, 1, 3, 1.0, E, a, 0.0, e);
+        matmul("TN", 3, 1, 3, 1.0, E, a, 0.0, e);//把n系的视线向量转为e系，E是坐标转换矩阵
 
         /* satellite velocity relative to receiver in ecef */
         for (j = 0; j < 3; j++) vs[j] = rs[j + 3 + i * 6] - x[j];
@@ -627,4 +631,8 @@ extern int pntpos(const obsd_t* obs, int n, const nav_t* nav,
     free(rs); free(dts); free(var); free(azel_); free(resp);
     return stat;
 }
-
+//add for GSS
+double varerr_(const prcopt_t* opt, double el, double snr_rover, int sys)
+{
+	return varerr(opt, el, snr_rover, sys);
+}

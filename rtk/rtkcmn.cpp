@@ -1191,14 +1191,6 @@ extern int filter(double* x, double* P, const double* H, const double* v,
         x[ix[i]] = xp_[i];
         for (j = 0; j < k; j++) P[ix[i] + ix[j] * n] = Pp_[i + j * k];
     }
-	/*double *P_diag;
-	P_diag = mat(k, 1);
-	for (i = 0; i < k; i++)
-	{
-		P_diag[i]= Pp_[i + i * k];
-	}
-
-	free(P_diag);*/
 
     free(ix); free(x_); free(xp_); free(P_); free(Pp_); free(H_);
     return info;
@@ -1719,7 +1711,8 @@ extern int adjgpsweek(int week)
 extern unsigned int tickget(void)
 {
 #ifdef WIN32
-    return (unsigned int)timeGetTime();
+	return (unsigned int)timeGetTime();
+    //return (unsigned int)timeGetTime();
 #else
     struct timespec tp = { 0 };
     struct timeval  tv = { 0 };
@@ -2936,7 +2929,7 @@ static void traceswap(void)
     gtime_t time = utc2gpst(timeget());
     char path[1024];
 
-    lock(&lock_trace);
+    rtk_lock(&lock_trace);
 
     if ((int)(time2gpst(time, NULL) / INT_SWAP_TRAC) ==
         (int)(time2gpst(time_trace, NULL) / INT_SWAP_TRAC)) {
@@ -3206,10 +3199,14 @@ extern int expath(const char* path, char* paths[], int nmax)
 
     trace(3, "expath  : path=%s nmax=%d\n", path, nmax);
 
-    if ((p = strrchr((char*)path, '/')) || (p = strrchr((char*)path, '\\'))) {
+    if ((p = (char*)strrchr(path, '/')) || (p = (char*)strrchr(path, '\\'))) {
         file = p + 1; strncpy(dir, path, p - path + 1); dir[p - path + 1] = '\0';
     }
-    if (!(dp = opendir(*dir ? dir : "."))) return 0;
+    if (!(dp = opendir(*dir ? dir : ".")))
+    {
+        //cout<<"dp="<<*dp<<endl;
+        return 0;
+    }
     while ((d = readdir(dp))) {
         if (*(d->d_name) == '.') continue;
         sprintf(s1, "^%s$", d->d_name);
