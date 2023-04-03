@@ -1,6 +1,6 @@
 # Rtk in GSS
 
-This project contains the open source codes for the papers "[[Real-time Kinematic Positioning Algorithm in Graphical State Space](https://www.ion.org/publications/abstract.cfm?articleID=18676)]()" and "[[Global RTK Positioning in Graphical State Space](https://www.ion.org/publications/abstract.cfm?articleID=18519)]()". 
+This project contains the open source codes for the papers "[[Real-time Kinematic Positioning Algorithm in Graphical State Space](https://www.ion.org/publications/abstract.cfm?articleID=18676)]" and "[[Global RTK Positioning in Graphical State Space](https://www.ion.org/publications/abstract.cfm?articleID=18519)]". 
 The two papers have been presented at ITM 2023 and ION GNSS+ 2022. 
 If you use this code for your research, please cite our papers.
 
