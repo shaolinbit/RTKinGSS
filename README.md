@@ -8,6 +8,8 @@ Ge, Yihong, Yan, Sudan, Lü, Shaolin, Li, Cong, "Global RTK Positioning in Graph
 
 Yan, Sudan, Lü, Shaolin, Liu, Gang, Zhan, Yiding, Lou, Jianan, Zhang, Rong, "Real-time Kinematic Positioning Algorithm in Graphical State Space," Proceedings of the 2023 International Technical Meeting of The Institute of Navigation, Long Beach, California, January 2023, pp. 637-648.[https://doi.org/10.33012/2023.18676](https://doi.org/10.33012/2023.18676)
 
+You can watch the presentation via https://www.zhihu.com/zvideo/1627258578007535616
+
 The library was built in Ubuntu 16.04.  
 The results may be different for different OS. If any problem was found by you, please propose an issue or report it to 4050627@qq.com. The RTK part was modified from RTKlib to C++ style. 
 
